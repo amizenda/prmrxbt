@@ -169,6 +169,7 @@ export default function SubmitPage() {
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoError, setLogoError] = useState(false);
 
@@ -202,8 +203,40 @@ export default function SubmitPage() {
     if (!validate()) return;
 
     setSubmitState("submitting");
-    await new Promise<void>((r) => setTimeout(r, 1800));
-    setSubmitState("success");
+
+    try {
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          description: form.description,
+          category: form.category.toLowerCase(),
+          url: form.website,
+          twitter: form.twitter,
+          github: form.github,
+          tags: form.tags,
+          notes: form.notes,
+          logoUrl: form.logoUrl,
+          email: "",
+          contractAddress: "",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const msg = typeof data?.error === "string" ? data.error : "Submission failed. Please try again.";
+        setSubmitError(msg);
+        setSubmitState("idle");
+        return;
+      }
+
+      await res.json();
+      setSubmitState("success");
+    } catch {
+      setSubmitError("Network error. Please check your connection and try again.");
+      setSubmitState("idle");
+    }
   }
 
   function handleLogoUrlChange(url: string) {
@@ -492,6 +525,14 @@ export default function SubmitPage() {
           </FormField>
 
           {/* Terms notice */}
+          {/* Server-side error */}
+          {submitError && (
+            <div className="flex items-start gap-2 p-3 border border-red-500/30 bg-red-500/5 rounded-[2px]" role="alert">
+              <span className="material-symbols-outlined text-red-500 text-sm leading-none mt-0.5">error</span>
+              <p className="text-xs font-body text-red-500">{submitError}</p>
+            </div>
+          )}
+
           <div className="flex items-start gap-2 p-3 border border-outline-variant/50 bg-surface-container-low rounded-[2px]">
             <input
               type="checkbox"
