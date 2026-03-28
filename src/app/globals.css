@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+/* ─── Base Everything — Design System: The Intelligence Terminal ─── */
+/* Source: Google Stitch — "Remix of Mobile Experience"              */
+/* Follows "Structured Transparency": high-density, terminal aesthetic */
+
+/* ── Google Material Symbols (variable font) ── */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  vertical-align: middle;
+  font-family: "Material Symbols Outlined";
+}
+
+/* ── Font families ── */
+.font-headline { font-family: "Inter", sans-serif; }
+.font-body     { font-family: "Inter", sans-serif; }
+.font-label    { font-family: "Space Grotesk", sans-serif; }
+
+/* ── Tailwind design tokens from Stitch ── */
+@theme inline {
+  /* ── Colors — Material 3 Base Blue palette ── */
+  --color-primary:             #003ec7;
+  --color-primary-container:    #0052ff;
+  --color-on-primary:           #ffffff;
+  --color-on-primary-container: #dfe3ff;
+
+  --color-secondary:            #4459a8;
+  --color-secondary-container:  #95aafe;
+  --color-on-secondary:         #ffffff;
+  --color-on-secondary-container: #253b89;
+
+  --color-tertiary:             #952200;
+  --color-tertiary-container:  #bf3003;
+  --color-on-tertiary:          #ffffff;
+  --color-on-tertiary-container: #ffddd5;
+
+  --color-surface:              #f9f9ff;
+  --color-surface-bright:       #f9f9ff;
+  --color-surface-container:    #e9edff;
+  --color-surface-container-high:   #e1e8fd;
+  --color-surface-container-highest: #dce2f7;
+  --color-surface-container-low:    #f1f3ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-dim:          #d3daef;
+  --color-surface-variant:      #dce2f7;
+  --color-surface-tint:          #004ced;
+
+  --color-background:           #f9f9ff;
+  --color-on-background:       #141b2b;
+  --color-on-surface:          #141b2b;
+  --color-on-surface-variant:  #434656;
+
+  --color-outline:              #737688;
+  --color-outline-variant:     #c3c5d9;
+
+  --color-error:               #ba1a1a;
+  --color-error-container:    #ffdad6;
+  --color-on-error:            #ffffff;
+  --color-on-error-container:  #93000a;
+
+  --color-inverse-surface:      #293040;
+  --color-inverse-on-surface:   #edf0ff;
+  --color-inverse-primary:      #b7c4ff;
+
+  /* ── Typography ── */
+  --font-headline: "Inter", sans-serif;
+  --font-body:     "Inter", sans-serif;
+  --font-label:    "Space Grotesk", sans-serif;
+
+  /* ── Border radius — sharp terminal aesthetic ── */
+  --radius-sm:      2px;   /* Cards, buttons */
+  --radius-default: 2px;
+  --radius-lg:      4px;
+  --radius-xl:      8px;
+  --radius-full:    9999px; /* Pills/badges only */
+
+  /* ── Spacing (8px grid) ── */
+  --spacing-1:  4px;
+  --spacing-2:  8px;
+  --spacing-3:  12px;
+  --spacing-4:  16px;
+  --spacing-5:  20px;
+  --spacing-6:  24px;
+  --spacing-8:  32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+}
+
+/* ─── Global Resets ─── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Selection ─── */
+::selection {
+  background-color: #b7c4ff;
+  color: #001452;
+}
+
+/* ─── Scrollbar — terminal style ─── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: #f1f3ff; }
+::-webkit-scrollbar-thumb  { background: #c3c5d9; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #737688; }
+
+/* ─── Focus states ─── */
+:focus-visible {
+  outline: 2px solid #003ec7;
+  outline-offset: 2px;
+}
+
+/* ─── Dark mode overrides ─── */
+.dark {
+  --color-surface:              #293040;
+  --color-surface-bright:        #293040;
+  --color-surface-container:     #1e2433;
+  --color-surface-container-high: #232b3c;
+  --color-surface-container-highest: #2a3347;
+  --color-surface-container-low:    #323d52;
+  --color-surface-container-lowest: #1e2433;
+  --color-surface-dim:           #1e2433;
+  --color-surface-variant:       #2a3347;
+  --color-background:            #293040;
+  --color-on-background:         #edf0ff;
+  --color-on-surface:            #edf0ff;
+  --color-on-surface-variant:    #c3c5d9;
+  --color-outline:               #8b8fa8;
+  --color-outline-variant:       #44495f;
+  --color-primary:               #b7c4ff;
+  --color-primary-container:     #0038b6;
+  --color-on-primary:            #001452;
+  --color-on-primary-container:  #dfe3ff;
+}
+
+/* ─── Utility: ghost border (40% opacity) ─── */
+.border-ghost { border: 1px solid rgba(195, 197, 217, 0.4); }
