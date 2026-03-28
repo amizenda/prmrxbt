@@ -21,6 +21,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWalletData } from "@/services/wallet";
 import { isValidAddress } from "@/utils/wallet";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
 // Validated params with defaults
 const DEFAULT_PAGE = 1;
@@ -44,6 +45,21 @@ export async function GET(
         code: "INVALID_ADDRESS",
       },
       { status: 400 }
+    );
+  }
+
+  // ── 2b. Rate limit ─────────────────────────────────────────────────────────
+  const ip =
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-real-ip") ??
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    "127.0.0.1";
+
+  const { allowed } = checkRateLimit(ip);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Please wait before making another request." },
+      { status: 429 }
     );
   }
 

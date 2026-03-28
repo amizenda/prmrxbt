@@ -59,7 +59,7 @@ export async function OPTIONS(req: NextRequest) {
     status: 204,
     headers: {
       ...SECURITY_HEADERS,
-      "Access-Control-Allow-Origin": origin,`n      "Vary": "Origin",
+      "Access-Control-Allow-Origin": origin,
       "Access-Control-Allow-Methods": "GET",
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Max-Age": "86400",

@@ -28,7 +28,7 @@ function StatBadge({ label, value }: { label: string; value: string }) {
 function DeFiCluster({ projectCount }: { projectCount: number }) {
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="bg-surface-container border border-primary p-4 rounded-sm shadow-sm group hover:bg-surface-bright cursor-pointer transition-all">
+      <div className="bg-surface-container border border-primary/20 p-4 rounded-sm group hover:bg-surface-bright hover:border-primary cursor-pointer transition-all">
         <div className="flex flex-col items-center gap-1">
           <span className="material-symbols-outlined text-primary mb-2">account_balance</span>
           <div className="font-mono text-[10px] font-bold uppercase tracking-tighter text-on-surface">
@@ -48,7 +48,7 @@ function DeFiCluster({ projectCount }: { projectCount: number }) {
 function InfraCluster({ projectCount }: { projectCount: number }) {
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="bg-surface-container border border-outline-variant p-4 rounded-sm shadow-sm group hover:border-primary cursor-pointer transition-all">
+      <div className="bg-surface-container border border-outline-variant p-4 rounded-sm group hover:border-primary cursor-pointer transition-all">
         <div className="flex flex-col items-center gap-1">
           <span className="material-symbols-outlined text-outline group-hover:text-primary mb-2 transition-colors">layers</span>
           <div className="font-mono text-[10px] font-bold uppercase tracking-tighter text-on-surface">

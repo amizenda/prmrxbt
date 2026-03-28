@@ -1,34 +1,15 @@
 /**
- * HTML / entity sanitisation — strips characters used in XSS and entity-injection attacks.
- * Applied to every string field before it leaves the service layer.
+ * This file is DEPRECATED.
+ *
+ * HTML entity escaping is only needed before dangerouslySetInnerHTML.
+ * React escapes all JSX expressions by default — no manual escaping needed.
+ *
+ * For input validation and schema enforcement, use Zod at API entry points.
+ * See: src/app/api/submit/route.ts for validated submission payload handling.
+ *
+ * @deprecated Use Zod schemas for input validation instead.
  */
-const DANGEROUS_CHARS = /[<>&\"']/g;
-const ESCAPE_MAP: Record<string, string> = {
-  '<': '&lt;',
-  '>': '&gt;',
-  '&': '&amp;',
-  '"': '&quot;',
-  "'": '&#39;',
-};
-
-export function sanitise(value: unknown): unknown {
-  if (value === null || value === undefined) return value;
-
-  if (typeof value === 'string') {
-    return value.replace(DANGEROUS_CHARS, (ch) => ESCAPE_MAP[ch]);
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(sanitise);
-  }
-
-  if (typeof value === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as object)) {
-      out[k] = sanitise(v);
-    }
-    return out;
-  }
-
-  return value;
+export function sanitise(_value: unknown): unknown {
+  // Intentionally a no-op. Kept to avoid breaking any lingering imports.
+  return _value;
 }

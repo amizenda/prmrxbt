@@ -210,13 +210,17 @@ export default function AboutPage() {
           </div>
           <div className="flex gap-3">
             <a
-              href="#"
+              href="https://x.com"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-[#0052FF] font-mono text-xs tracking-[0.05em] uppercase hover:underline"
             >
               X / TWITTER
             </a>
             <a
-              href="#"
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-[#0052FF] font-mono text-xs tracking-[0.05em] uppercase hover:underline"
             >
               GITHUB
