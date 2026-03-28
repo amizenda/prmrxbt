@@ -1,24 +1,38 @@
 "use client";
 
 /**
- * Wallet Dashboard Page — /dashboard
- * Figma: App Dashboard & Map — Frame 2041:13
+ * Dashboard Page — /dashboard
+ * Stitch: "App Dashboard & Map" (b96593e35bb14d2cadcaf3fea59aadc2)
  *
- * Layout: ecosystem map (Section 0) → wallet input (Section 1) → stats (Section 2) → activity (Section 3)
- * Integrates WT-BE-001 + WT-FE-001/002/003 + WT-BE-002
+ * Layout from Stitch HTML exactly:
+ *   - Fixed TopNav (h-14)
+ *   - Fixed Sidebar (w-64, lg only)
+ *   - Main content area (ml-64, mt-14)
+ *     - Sticky search + filter bar
+ *     - Ecosystem Map section
+ *     - Project card grid
+ *     - Leaderboard section
+ *     - Project detail drawer (right-side overlay)
+ *     - Mobile bottom nav
+ *     - Footer
  *
- * The ecosystem map and KPI strip are powered by GET /api/dashboard.
- * Wallet tracking is powered by GET /api/wallet/[address].
+ * Wallet tracking (WT-BE-001, WT-FE-001/002/003, WT-BE-002) preserved:
+ *     - WalletInput, WalletStats, WalletActivityFeed in sidebar expand / section
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { TopNav } from "@/components/layout/TopNav";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { EcosystemMap } from "@/components/dashboard/EcosystemMap";
+import { ProjectCard, DEMO_PROJECTS } from "@/components/dashboard/ProjectCard";
+import type { ProjectCardData } from "@/components/dashboard/ProjectCard";
+import { Leaderboard } from "@/components/dashboard/Leaderboard";
+import { ProjectDrawer } from "@/components/dashboard/ProjectDrawer";
 import { WalletInput } from "@/components/wallet/WalletInput";
 import { WalletStats } from "@/components/wallet/WalletStats";
 import { WalletActivityFeed } from "@/components/wallet/WalletActivityFeed";
-import { MapWidget } from "@/components/dashboard/MapWidget";
-import type { EcosystemZone } from "@/components/dashboard/MapWidget";
 import type { WalletStats as WalletStatsType } from "@/types/wallet";
-import type { DashboardResponse, RegionSummary } from "@/types/dashboard";
+import type { DashboardResponse } from "@/types/dashboard";
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
@@ -35,70 +49,19 @@ function formatWallets(n: number): string {
   return String(n);
 }
 
-// ─── MapWidget zone transformer ────────────────────────────────────────────────
-// Converts raw /api/dashboard region data into EcosystemZone props.
-
-const ZONE_ICONS: Record<string, string> = {
-  defi: "trending_up",
-  nft: "grid_view",
-  social: "group",
-  infra: "dns",
-  gaming: "sports_esports",
-  bridge: "swap_horiz",
-  yield: "savings",
-  dao: "how_to_vote",
-};
-
-function regionToZone(r: RegionSummary): EcosystemZone {
-  return {
-    id: r.id,
-    label: r.name,
-    sublabel: r.active ? "Active" : "Building",
-    icon: ZONE_ICONS[r.id] ?? "circle",
-    color: r.color,
-    glowColor: r.color + "22",
-    stat: formatUSD(r.volume24h),
-    statLabel: "24h Vol",
-    topProtocol: undefined,
-  };
-}
-
-// ─── Dashboard state ─────────────────────────────────────────────────────────
-
-interface DashboardState {
-  address: string | null;
-  stats: WalletStatsType | null;
-  isLoading: boolean;
-  error: string | null;
-  page: number;
-}
-
-const INITIAL_STATE: DashboardState = {
-  address: null,
-  stats: null,
-  isLoading: false,
-  error: null,
-  page: 1,
-};
-
-// ─── API helpers ───────────────────────────────────────────────────────────────
+// ─── API helpers ──────────────────────────────────────────────────────────────
 
 async function fetchWalletPage(
   address: string,
   page: number
 ): Promise<WalletStatsType> {
   const params = new URLSearchParams({ page: String(page), limit: "20" });
-  const res = await fetch(`/api/wallet/${address}?${params}`, {
-    // No ISR cache: client-side pagination must always be fresh.
-    // Server/API layer handles its own caching via Cache-Control.
-  });
-
+  const res = await fetch(`/api/wallet/${address}?${params}`);
   if (!res.ok) {
     if (res.status === 400) throw new Error("Invalid wallet address");
     if (res.status === 502) throw new Error("Upstream API unavailable. Please try again.");
     throw new Error(`Request failed (${res.status})`);
   }
-
   return res.json() as Promise<WalletStatsType>;
 }
 
@@ -111,20 +74,60 @@ async function fetchDashboard(): Promise<DashboardResponse> {
   return res.json() as Promise<DashboardResponse>;
 }
 
+// ─── Wallet state ─────────────────────────────────────────────────────────────
+
+interface WalletState {
+  address: string | null;
+  stats: WalletStatsType | null;
+  isLoading: boolean;
+  error: string | null;
+  page: number;
+}
+
+const INITIAL_WALLET: WalletState = {
+  address: null,
+  stats: null,
+  isLoading: false,
+  error: null,
+  page: 1,
+};
+
+// ─── Category filter chips (from Stitch HTML) ─────────────────────────────────
+
+const CATEGORIES = [
+  { id: "all", label: "ALL" },
+  { id: "defi", label: "DEFI" },
+  { id: "ai", label: "AI" },
+  { id: "infra", label: "INFRA" },
+  { id: "social", label: "SOCIAL" },
+];
+
+// ─── Sort options ─────────────────────────────────────────────────────────────
+
+const SORT_OPTIONS = ["SORT: TRENDING", "SORT: NEWEST", "SORT: TVL (HIGH)"];
+
 // ─── Page component ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const [state, setState] = useState<DashboardState>(INITIAL_STATE);
+  // ── Wallet state ───────────────────────────────────────────────────────────
+  const [walletState, setWalletState] = useState<WalletState>(INITIAL_WALLET);
+  const pageRef = useRef(1);
+  pageRef.current = walletState.page;
+
+  // ── Dashboard data ─────────────────────────────────────────────────────────
   const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
-  const [activeZone, setActiveZone] = useState<string | null>(null);
 
-  // Stable ref to current page — avoids stale closure in handleLoadMore
-  const pageRef = useRef(state.page);
-  pageRef.current = state.page;
+  // ── UI state ────────────────────────────────────────────────────────────────
+  const [activeNav, setActiveNav] = useState("dashboard");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [sortOption, setSortOption] = useState(SORT_OPTIONS[0]);
+  const [selectedProject, setSelectedProject] = useState<ProjectCardData | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [walletPanelOpen, setWalletPanelOpen] = useState(false);
 
-  // ── Fetch ecosystem dashboard on mount ─────────────────────────────────────
+  // ── Fetch ecosystem dashboard ──────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -147,14 +150,22 @@ export default function DashboardPage() {
     return () => { cancelled = true; };
   }, []);
 
-  // ── Wallet loader ──────────────────────────────────────────────────────────
+  // ── Wallet load ─────────────────────────────────────────────────────────────
   const loadWallet = useCallback(async (address: string, page = 1) => {
-    setState((s) => ({ ...s, isLoading: true, error: null }));
+    setWalletState((s) => ({ ...s, isLoading: true, error: null }));
     try {
       const stats = await fetchWalletPage(address, page);
-      setState((s) => ({ ...s, stats, address, page, isLoading: false, error: null }));
+      setWalletState((s) => ({
+        ...s,
+        stats,
+        address,
+        page,
+        isLoading: false,
+        error: null,
+      }));
+      setWalletPanelOpen(true);
     } catch (err) {
-      setState((s) => ({
+      setWalletState((s) => ({
         ...s,
         isLoading: false,
         error: err instanceof Error ? err.message : "Unknown error",
@@ -164,16 +175,13 @@ export default function DashboardPage() {
 
   // ── Load more ──────────────────────────────────────────────────────────────
   const handleLoadMore = useCallback(() => {
-    setState((s) => {
-      if (!s.address || s.isLoading) return s;
-      return { ...s, isLoading: true };
-    });
-
+    if (!walletState.address || walletState.isLoading) return;
     const nextPage = pageRef.current + 1;
+    setWalletState((s) => ({ ...s, isLoading: true }));
 
-    fetchWalletPage(state.address!, nextPage)
+    fetchWalletPage(walletState.address, nextPage)
       .then((newStats) => {
-        setState((s) => {
+        setWalletState((s) => {
           if (!s.stats) return s;
           return {
             ...s,
@@ -187,185 +195,276 @@ export default function DashboardPage() {
         });
       })
       .catch((err) => {
-        setState((s) => ({
+        setWalletState((s) => ({
           ...s,
           isLoading: false,
           error: err instanceof Error ? err.message : "Load more failed",
         }));
       });
-  }, [state.address]);
+  }, [walletState.address, walletState.isLoading]);
 
-  const hasMore = state.stats
-    ? state.stats.transactions.length < state.stats.txCount
+  const hasMore = walletState.stats
+    ? walletState.stats.transactions.length < walletState.stats.txCount
     : false;
 
-  // ── Derived: map zones from dashboard regions ───────────────────────────────
-  const mapZones: EcosystemZone[] =
-    dashboard?.regions.map(regionToZone) ??
-    [];
+  // ── Project card selection → open drawer ────────────────────────────────────
+  function handleProjectSelect(project: ProjectCardData) {
+    setSelectedProject(project);
+    setDrawerOpen(true);
+  }
+
+  // ── Filter projects by category ─────────────────────────────────────────────
+  const filteredProjects = selectedCategory === "all"
+    ? DEMO_PROJECTS
+    : DEMO_PROJECTS.filter(
+        (p) => p.category.toLowerCase() === selectedCategory.toLowerCase()
+      );
+
+  // ── Derived KPIs from dashboard ─────────────────────────────────────────────
+  const totalProjects = dashboard?.overview.totalProjects ?? 0;
+  const totalVolume = dashboard?.overview.totalVolume24h ?? 0;
+  const activeWallets = dashboard?.overview.activeWallets ?? 0;
 
   return (
-    <main className="min-h-screen bg-surface pb-20 lg:pb-0">
+    <div className="bg-surface text-on-surface overflow-hidden">
+      {/* Fixed top navigation */}
+      <TopNav />
 
-      {/* ── Top navbar ──────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface">
-        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-3">
-          <span className="material-symbols-outlined text-primary text-xl leading-none">
-            account_balance_wallet
-          </span>
-          <span className="font-headline font-black text-base text-on-surface">
-            Wallet Tracker
-          </span>
-          <span className="ml-auto text-xs font-label text-outline">Base</span>
-        </div>
-      </header>
+      {/* Fixed sidebar */}
+      <Sidebar
+        activeNav={activeNav}
+        onNavChange={(id) => {
+          setActiveNav(id);
+          if (id !== "dashboard") setWalletPanelOpen(false);
+        }}
+      />
 
-      {/* ── Page content ─────────────────────────────────────────────────── */}
-      <div className="max-w-4xl mx-auto px-4 py-6 flex flex-col gap-6">
+      {/* Mobile bottom nav */}
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 lg:hidden bg-white/90 dark:bg-slate-950/90 border-t border-slate-200/40 dark:border-slate-800/40 backdrop-blur-md">
+        {[
+          { id: "explore", icon: "explore", label: "EXPLORE" },
+          { id: "trends", icon: "trending_up", label: "TRENDS" },
+          { id: "saved", icon: "bookmark", label: "SAVED" },
+          { id: "wallet", icon: "account_balance_wallet", label: "WALLET" },
+        ].map((item) => (
+          <button
+            key={item.id}
+            onClick={() => {
+              if (item.id === "wallet") setWalletPanelOpen((v) => !v);
+            }}
+            className={[
+              "flex flex-col items-center justify-center p-2 font-mono text-[9px] font-bold uppercase transition-colors",
+              item.id === "explore"
+                ? "text-blue-600 dark:text-blue-400"
+                : "text-slate-400 dark:text-slate-600",
+            ].join(" ")}
+          >
+            <span className="material-symbols-outlined">{item.icon}</span>
+            {item.label}
+          </button>
+        ))}
+      </nav>
 
-        {/* ── Section 0: Ecosystem Map & Overview ───────────────────────── */}
-        <section>
-          {/* KPI banner (above the hex map) */}
-          {dashboardLoading && (
-            <div className="grid grid-cols-3 divide-x divide-outline-variant border border-outline-variant rounded-t-[var(--radius-lg)] bg-surface-container">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="flex flex-col gap-1 p-4 items-center">
-                  <div className="h-5 w-20 bg-outline-variant/30 rounded animate-pulse" />
-                  <div className="h-3 w-14 bg-outline-variant/20 rounded animate-pulse" />
-                </div>
-              ))}
-            </div>
-          )}
-          {dashboardError && (
-            <div className="border border-error/40 bg-error-container rounded-[var(--radius-md)] px-4 py-2 text-xs font-label text-on-error-container">
-              {dashboardError}
-            </div>
-          )}
-          {dashboard && (
-            <div className="grid grid-cols-3 divide-x divide-outline-variant border border-outline-variant rounded-t-[var(--radius-lg)] bg-surface-container">
-              <div className="flex flex-col gap-1 p-4 items-center text-center">
-                <span className="text-xl font-headline font-black text-on-surface">
-                  {dashboard.overview.totalProjects}
-                </span>
-                <span className="text-[10px] font-label text-outline uppercase tracking-widest">
-                  Projects
-                </span>
-              </div>
-              <div className="flex flex-col gap-1 p-4 items-center text-center">
-                <span className="text-xl font-headline font-black text-on-surface">
-                  {formatUSD(dashboard.overview.totalVolume24h)}
-                </span>
-                <span className="text-[10px] font-label text-outline uppercase tracking-widest">
-                  24h Volume
-                </span>
-              </div>
-              <div className="flex flex-col gap-1 p-4 items-center text-center">
-                <span className="text-xl font-headline font-black text-on-surface">
-                  {formatWallets(dashboard.overview.activeWallets)}
-                </span>
-                <span className="text-[10px] font-label text-outline uppercase tracking-widest">
-                  Active Wallets
-                </span>
-              </div>
-            </div>
-          )}
+      {/* Project detail drawer */}
+      <ProjectDrawer
+        project={selectedProject ? {
+          id: selectedProject.id,
+          name: selectedProject.name,
+          ticker: `${selectedProject.ticker} // ${selectedProject.category} HUB`,
+          thesis: `${selectedProject.name} is a key protocol within the Base ecosystem, providing ${selectedProject.category.toLowerCase()} services to thousands of daily active users.`,
+          metrics: selectedProject.stats.map(([k, v]) => [k, v]),
+          narratives: ["Ecosystem Pillar", "High Conviction", selectedProject.category],
+          governance: {
+            label: "Community Governed",
+            sublabel: "DAO Active",
+          },
+          dappUrl: "#",
+        } : null}
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      />
 
-          {/* Hex map — populated from /api/dashboard regions */}
-          <MapWidget
-            zones={mapZones.length > 0 ? mapZones : undefined}
-            activeZone={activeZone}
-            onZoneSelect={(id) => setActiveZone(id ?? null)}
-          />
-        </section>
+      {/* Main content canvas */}
+      <main className="lg:ml-64 mt-14 h-[calc(100vh-3.5rem)] overflow-y-auto bg-surface grid-bg relative">
 
-        {/* ── Section 1: Wallet input ────────────────────────────────────── */}
-        <section>
-          <div className="border border-outline-variant rounded-[var(--radius-lg)] bg-surface-container p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-primary text-lg leading-none">
+        {/* ── Sticky search + filter bar ────────────────────────────────── */}
+        <div className="sticky top-0 z-30 bg-surface/80 backdrop-blur-sm border-b border-outline-variant/30 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center">
+            {/* Search */}
+            <div className="relative flex-1 w-full">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">
                 search
               </span>
-              <h2
-                className="text-sm font-label font-semibold text-on-surface uppercase tracking-widest"
-                style={{ letterSpacing: "0.1em" }}
+              <input
+                className="w-full bg-surface-container-low border border-outline-variant rounded-sm py-2 pl-10 pr-4 font-mono text-xs tracking-tight focus:ring-1 focus:ring-primary focus:border-primary transition-all text-on-surface placeholder:text-outline"
+                placeholder="SEARCH PROJECTS BY NAME, TICKER, OR CATEGORY..."
+                type="text"
+              />
+            </div>
+
+            {/* Category chips */}
+            <div className="flex gap-2 overflow-x-auto hide-scrollbar w-full md:w-auto">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={[
+                    "px-3 py-1.5 font-mono text-[10px] font-bold uppercase rounded-full transition-all",
+                    selectedCategory === cat.id
+                      ? "bg-primary text-on-primary"
+                      : "bg-surface-container-high text-on-surface-variant border border-outline-variant/20 hover:border-primary",
+                  ].join(" ")}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Sort select */}
+            <div className="w-full md:w-auto">
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="bg-surface-container-low border border-outline-variant rounded-sm py-2 px-3 font-mono text-[10px] tracking-tight w-full"
               >
-                Track Wallet
-              </h2>
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
             </div>
-            <WalletInput
-              onSubmit={loadWallet}
-              initialValue={state.address ?? ""}
-              isLoading={state.isLoading && !!state.address}
-            />
           </div>
-        </section>
+        </div>
 
-        {/* ── Error banner ───────────────────────────────────────────────── */}
-        {state.error && (
-          <section>
-            <div
-              role="alert"
-              aria-live="assertive"
-              className="border border-error/50 bg-error-container rounded-[var(--radius-sm)] px-4 py-3 flex items-start gap-3"
-            >
-              <span className="material-symbols-outlined text-error text-base leading-none mt-0.5">
-                error
-              </span>
-              <p className="text-sm text-on-error-container font-label">{state.error}</p>
-            </div>
-          </section>
-        )}
+        {/* ── Scrollable content ─────────────────────────────────────────── */}
+        <div className="max-w-7xl mx-auto p-6 space-y-8 pb-20">
 
-        {/* ── Section 2: Stats row ───────────────────────────────────────── */}
-        {state.stats && (
+          {/* ── Ecosystem Map section ────────────────────────────────────── */}
           <section>
-            <WalletStats stats={state.stats} isLoading={false} />
-          </section>
-        )}
-
-        {/* ── Section 3: Activity feed ───────────────────────────────────── */}
-        {state.stats && (
-          <section>
-            <WalletActivityFeed
-              stats={state.stats}
-              walletAddress={state.address ?? ""}
-              isLoading={state.isLoading && state.page === 1}
-              isLoadingMore={state.isLoading && state.page > 1}
-              onLoadMore={hasMore ? handleLoadMore : undefined}
-              hasMore={hasMore}
+            <EcosystemMap
+              defiProjectCount={totalProjects > 0 ? totalProjects : 34}
+              infraProjectCount={12}
             />
           </section>
-        )}
 
-        {/* ── Empty state ─────────────────────────────────────────────────── */}
-        {!state.stats && !state.isLoading && !state.error && (
-          <section>
-            <div className="border border-dashed border-outline-variant rounded-[var(--radius-lg)] p-12 flex flex-col items-center gap-4 text-center">
-              <span className="material-symbols-outlined text-6xl text-outline/50 leading-none">
-                qr_code
-              </span>
-              <div className="flex flex-col gap-1">
-                <p className="text-on-surface font-headline font-black text-lg">
-                  Enter a Base wallet address
-                </p>
-                <p className="text-on-surface-variant font-label text-sm max-w-xs">
-                  Track real-time transaction history, net flow, gas usage, and activity — all on-chain.
-                </p>
+          {/* ── Project grid (cards) ─────────────────────────────────────── */}
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {dashboardLoading && filteredProjects.map((p) => (
+              <div
+                key={p.id}
+                className="bg-surface-container-lowest border border-outline-variant/40 rounded-sm overflow-hidden animate-pulse"
+              >
+                <div className="p-4 border-b border-outline-variant/20">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 bg-surface-container rounded-sm" />
+                    <div className="space-y-2">
+                      <div className="h-4 w-24 bg-surface-container rounded" />
+                      <div className="h-3 w-12 bg-surface-container rounded" />
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 space-y-3">
+                  <div className="h-3 w-full bg-surface-container rounded" />
+                  <div className="h-3 w-2/3 bg-surface-container rounded" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="h-10 bg-surface-container rounded" />
+                    <div className="h-10 bg-surface-container rounded" />
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col gap-1 text-xs text-on-surface-variant/60 font-label">
-                <span>Powered by Basescan</span>
-                <span>Network: Base Mainnet</span>
-              </div>
-            </div>
+            ))}
+
+            {!dashboardLoading && filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                {...project}
+                onSelect={handleProjectSelect}
+              />
+            ))}
           </section>
-        )}
+
+          {/* ── Leaderboard section ──────────────────────────────────────── */}
+          <section>
+            <Leaderboard onViewAll={() => {}} />
+          </section>
+
+          {/* ── Wallet panel section ─────────────────────────────────────── */}
+          {walletPanelOpen && (
+            <section className="bg-surface-container-lowest border border-outline-variant/40 rounded-sm p-6 space-y-6">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-lg leading-none">account_balance_wallet</span>
+                <h2 className="text-sm font-mono font-bold uppercase tracking-widest text-on-surface">
+                  Wallet Tracker
+                </h2>
+              </div>
+
+              <WalletInput
+                onSubmit={loadWallet}
+                initialValue={walletState.address ?? ""}
+                isLoading={walletState.isLoading && !!walletState.address}
+              />
+
+              {walletState.error && (
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="border border-error/50 bg-error-container rounded-sm px-4 py-3 flex items-start gap-3"
+                >
+                  <span className="material-symbols-outlined text-error text-base leading-none mt-0.5">error</span>
+                  <p className="text-sm text-on-error-container font-mono">{walletState.error}</p>
+                </div>
+              )}
+
+              {walletState.stats && !walletState.isLoading && (
+                <>
+                  <WalletStats stats={walletState.stats} isLoading={false} />
+                  <WalletActivityFeed
+                    stats={walletState.stats}
+                    walletAddress={walletState.address ?? ""}
+                    isLoading={false}
+                    isLoadingMore={walletState.isLoading}
+                    onLoadMore={hasMore ? handleLoadMore : undefined}
+                    hasMore={hasMore}
+                  />
+                </>
+              )}
+
+              {!walletState.stats && !walletState.isLoading && (
+                <div className="border border-dashed border-outline-variant rounded-sm p-8 flex flex-col items-center gap-3 text-center">
+                  <span className="material-symbols-outlined text-5xl text-outline/40 leading-none">qr_code</span>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-on-surface font-mono font-bold text-sm">
+                      Enter a Base wallet address
+                    </p>
+                    <p className="text-on-surface-variant font-mono text-xs max-w-xs">
+                      Track real-time transaction history, net flow, gas usage, and activity — all on-chain.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
+        </div>
 
         {/* ── Footer ──────────────────────────────────────────────────────── */}
-        <footer className="pt-4 border-t border-outline-variant/30 flex items-center justify-between text-xs text-outline font-label">
-          <span>Data sourced from Basescan · Base RPC</span>
-          <span>Refreshes every 60s</span>
+        <footer className="lg:ml-64 w-full px-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-slate-950 py-8 border-t border-slate-200/40 dark:border-slate-800/40">
+          <div className="font-bold text-slate-900 dark:text-slate-50 font-mono text-[10px] uppercase tracking-tighter">
+            © 2024 BASE EVERYTHING. ECOSYSTEM INTELLIGENCE TERMINAL.
+          </div>
+          <div className="flex gap-6">
+            {["Categories", "Socials", "Submit", "Documentation", "Privacy"].map((link) => (
+              <a
+                key={link}
+                href="#"
+                className="font-mono text-[10px] uppercase tracking-tighter text-slate-400 hover:text-blue-500 hover:opacity-80 transition-opacity"
+              >
+                {link}
+              </a>
+            ))}
+          </div>
         </footer>
-      </div>
-    </main>
+
+      </main>
+    </div>
   );
 }

@@ -1,0 +1,528 @@
+﻿<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Base Everything - Intelligence Terminal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#952200",
+                        "primary-fixed": "#dde1ff",
+                        "primary-fixed-dim": "#b7c4ff",
+                        "on-background": "#141b2b",
+                        "on-primary-fixed": "#001452",
+                        "tertiary-container": "#bf3003",
+                        "secondary-fixed": "#dde1ff",
+                        "secondary-fixed-dim": "#b7c4ff",
+                        "on-secondary-container": "#253b89",
+                        "surface-dim": "#d3daef",
+                        "surface": "#f9f9ff",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9ff",
+                        "surface-container-high": "#e1e8fd",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#434656",
+                        "surface-container-highest": "#dce2f7",
+                        "surface-tint": "#004ced",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#b7c4ff",
+                        "secondary": "#4459a8",
+                        "surface-container": "#e9edff",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#dce2f7",
+                        "surface-container-low": "#f1f3ff",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#2b418f",
+                        "on-primary-fixed-variant": "#0038b6",
+                        "primary": "#003ec7",
+                        "outline": "#737688",
+                        "outline-variant": "#c3c5d9",
+                        "primary-container": "#0052ff",
+                        "on-surface": "#141b2b",
+                        "background": "#f9f9ff",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#001452",
+                        "secondary-container": "#95aafe",
+                        "on-tertiary-fixed": "#3c0800",
+                        "on-tertiary-container": "#ffddd5",
+                        "tertiary-fixed": "#ffdbd2",
+                        "on-tertiary-fixed-variant": "#891e00",
+                        "inverse-on-surface": "#edf0ff",
+                        "inverse-surface": "#293040",
+                        "on-primary-container": "#dfe3ff",
+                        "tertiary-fixed-dim": "#ffb4a1"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'Space Grotesk', monospace; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .grid-bg {
+            background-image: radial-gradient(#c3c5d9 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface overflow-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-14 bg-slate-50 dark:bg-slate-950 bg-opacity-90 backdrop-blur-md border-b border-slate-200/40 dark:border-slate-800/40">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black tracking-tighter text-slate-900 dark:text-slate-50">Base Everything</span>
+<nav class="hidden md:flex gap-6">
+<a class="font-['Inter'] font-bold tracking-tight text-sm uppercase font-mono text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-1" href="#">EXPLORE</a>
+<a class="font-['Inter'] font-bold tracking-tight text-sm uppercase font-mono text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors duration-200" href="#">CATEGORIES</a>
+<a class="font-['Inter'] font-bold tracking-tight text-sm uppercase font-mono text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors duration-200" href="#">TRENDING</a>
+<a class="font-['Inter'] font-bold tracking-tight text-sm uppercase font-mono text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors duration-200" href="#">LEADERBOARDS</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-500 hover:bg-slate-100 p-2 rounded transition-all">dark_mode</button>
+<button class="bg-primary text-on-primary px-4 py-1.5 text-xs font-bold uppercase tracking-tight rounded-sm hover:opacity-90 transition-all">Connect Wallet</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-64 z-40 bg-slate-100 dark:bg-slate-900 border-r border-slate-200/40 dark:border-slate-800/40">
+<div class="p-6 border-b border-slate-200/40 dark:border-slate-800/40">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center border border-outline-variant/40">
+<img alt="Avatar" class="w-7 h-7" data-alt="Geometric user wallet identification avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfyES8t11VzcRils68T4HZsAu1DWe5HMz0Q5HBQ5GaRd7NMQESxuJonpPrW56ccIzTvcp0INaY7LjZkMmHPUgBWY0dt3yaTxHkHUQj_MdkJa-3vtPf3Z_pkxT87yuP9b8En6FnGrZMsfGrhaZX6fzBfXckaA9U8at6w6rgc8uY0NTmgq5tjb3YFIvShojdhsupcDUHxetOMQthHQ-3IuehWEJ9h5Mc7ej34QmC4PrWY7tgisfFR52GEGz1RpRJOVcb1bk7ukR9mw"/>
+</div>
+<div>
+<div class="text-sm font-bold text-slate-900 dark:text-slate-100 mono tracking-tight">BASE_USER_01</div>
+<div class="text-[10px] text-slate-500 mono uppercase tracking-widest">Verified Curator</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 py-4">
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-r-2 border-blue-600 font-mono text-[10px] tracking-widest uppercase transition-all translate-x-1" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="grid_view">grid_view</span>
+                    DASHBOARD
+                </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 font-mono text-[10px] tracking-widest uppercase transition-all" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="insights">insights</span>
+                    INTELLIGENCE
+                </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 font-mono text-[10px] tracking-widest uppercase transition-all" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="hub">hub</span>
+                    ECOSYSTEM
+                </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 font-mono text-[10px] tracking-widest uppercase transition-all" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="terminal">terminal</span>
+                    TERMINAL
+                </a>
+</div>
+</nav>
+<div class="p-6">
+<button class="w-full bg-surface-container-highest border border-outline-variant text-slate-900 font-mono text-[10px] py-3 tracking-widest font-bold uppercase hover:bg-surface-container-high transition-all">
+                SUBMIT PROJECT
+            </button>
+</div>
+<div class="p-4 border-t border-slate-200/40 dark:border-slate-800/40">
+<div class="flex justify-between px-2">
+<button class="text-slate-400 hover:text-slate-900 transition-all flex items-center gap-1 mono text-[9px] uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm">settings</span> Settings
+                </button>
+<button class="text-slate-400 hover:text-slate-900 transition-all flex items-center gap-1 mono text-[9px] uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm">help_outline</span> Support
+                </button>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 mt-14 h-[calc(100vh-3.5rem)] overflow-y-auto bg-surface grid-bg relative">
+<!-- Search & Filter Bar (Sticky top of content) -->
+<div class="sticky top-0 z-30 bg-surface/80 backdrop-blur-sm border-b border-outline-variant/30 px-6 py-4">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center">
+<div class="relative flex-1 w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-sm py-2 pl-10 pr-4 mono text-xs tracking-tight focus:ring-1 focus:ring-primary focus:border-primary transition-all" placeholder="SEARCH PROJECTS BY NAME, TICKER, OR CATEGORY..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto hide-scrollbar w-full md:w-auto">
+<button class="px-3 py-1.5 bg-primary text-on-primary text-[10px] font-bold mono uppercase rounded-full">ALL</button>
+<button class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant text-[10px] font-bold mono uppercase rounded-full border border-outline-variant/20 hover:border-primary transition-all">DEFI</button>
+<button class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant text-[10px] font-bold mono uppercase rounded-full border border-outline-variant/20 hover:border-primary transition-all">AI</button>
+<button class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant text-[10px] font-bold mono uppercase rounded-full border border-outline-variant/20 hover:border-primary transition-all">INFRA</button>
+<button class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant text-[10px] font-bold mono uppercase rounded-full border border-outline-variant/20 hover:border-primary transition-all">SOCIAL</button>
+</div>
+<div class="flex gap-2 w-full md:w-auto">
+<select class="bg-surface-container-low border border-outline-variant rounded-sm py-2 px-3 mono text-[10px] tracking-tight w-full">
+<option>SORT: TRENDING</option>
+<option>SORT: NEWEST</option>
+<option>SORT: TVL (HIGH)</option>
+</select>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto p-6 space-y-8 pb-20">
+<!-- Ecosystem Map Section -->
+<section class="relative bg-surface-container-lowest border border-outline-variant/40 rounded-sm overflow-hidden aspect-[21/9] min-h-[400px]">
+<div class="absolute inset-0 grid-bg opacity-30"></div>
+<div class="absolute top-4 left-4 z-10">
+<h2 class="text-sm font-bold mono uppercase tracking-widest text-primary flex items-center gap-2">
+<span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                        Interactive Ecosystem Core
+                    </h2>
+</div>
+<!-- SVG Connections (Visual Only) -->
+<svg class="absolute inset-0 pointer-events-none w-full h-full">
+<path d="M 300 200 L 500 150" opacity="0.3" stroke="#003ec7" stroke-dasharray="4" stroke-width="1"></path>
+<path d="M 500 150 L 700 200" opacity="0.3" stroke="#003ec7" stroke-dasharray="4" stroke-width="1"></path>
+<path d="M 500 150 L 500 300" opacity="0.3" stroke="#003ec7" stroke-dasharray="4" stroke-width="1"></path>
+</svg>
+<div class="relative w-full h-full flex items-center justify-center gap-20">
+<!-- DeFi Cluster -->
+<div class="flex flex-col items-center gap-4">
+<div class="bg-surface-container border border-primary p-4 rounded-sm shadow-sm group hover:bg-surface-bright cursor-pointer transition-all">
+<span class="material-symbols-outlined text-primary mb-2">account_balance</span>
+<div class="mono text-[10px] font-bold uppercase tracking-tighter">DEFI SECTOR</div>
+<div class="text-[9px] text-outline mono">34 PROJECTS</div>
+</div>
+</div>
+<!-- Hub Node -->
+<div class="flex flex-col items-center gap-4">
+<div class="w-24 h-24 rounded-full border-2 border-primary flex items-center justify-center bg-primary-fixed ring-8 ring-primary/5">
+<span class="font-black text-primary text-xl tracking-tighter">BASE</span>
+</div>
+</div>
+<!-- Infra Cluster -->
+<div class="flex flex-col items-center gap-4">
+<div class="bg-surface-container border border-outline-variant p-4 rounded-sm shadow-sm group hover:border-primary cursor-pointer transition-all">
+<span class="material-symbols-outlined text-outline group-hover:text-primary mb-2">layers</span>
+<div class="mono text-[10px] font-bold uppercase tracking-tighter">INFRASTRUCTURE</div>
+<div class="text-[9px] text-outline mono">12 PROJECTS</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-4 right-4 flex gap-2">
+<button class="p-2 bg-surface-container-low border border-outline-variant rounded-sm hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-sm">zoom_in</span>
+</button>
+<button class="p-2 bg-surface-container-low border border-outline-variant rounded-sm hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-sm">zoom_out</span>
+</button>
+<button class="p-2 bg-surface-container-low border border-outline-variant rounded-sm hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-sm">fullscreen</span>
+</button>
+</div>
+</section>
+<!-- Project Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Project Card 1 (Active/Selected State) -->
+<article class="bg-surface-container-lowest border border-primary ring-1 ring-primary/20 flex flex-col group cursor-pointer">
+<div class="p-4 flex justify-between items-start border-b border-outline-variant/20 bg-surface-container-highest">
+<div class="flex gap-3">
+<div class="w-10 h-10 bg-white rounded-sm border border-outline-variant flex items-center justify-center p-1">
+<img alt="Aerodrome Logo" class="w-full h-full" data-alt="Blue logo for Aerodrome crypto protocol" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgj8p9BoYXn1WC4se5pio6v1_Dqla3tThjOaV6tmm-p9vUhfAgMXsDpLx9WavnlHT_G6F7tLhm5IlsMbdxv5PqxOjoKIQCD2yFQh-bULCd3wimMT-0hTPQFH2ZJLrvbvLcPMcqrR72f_stZc-tBeHcEQq4XwjN5ewWoCGtQ66gYItgQ0rk7KRqgY1KZyg_i_4TXZeaHXC_550SiEH4cZpbrgMXJJ5zEGIlwozxim6Z-AfDmwJdhA2-JVoEIN5kRN16SZGsNjC7Rg"/>
+</div>
+<div>
+<h3 class="font-bold text-sm tracking-tight text-on-surface">Aerodrome</h3>
+<div class="mono text-[10px] text-primary font-bold">AERO</div>
+</div>
+</div>
+<span class="px-2 py-0.5 bg-tertiary-container text-white mono text-[9px] font-bold rounded-full">ð¥ HOT</span>
+</div>
+<div class="p-4 space-y-4 flex-1">
+<p class="text-xs text-on-surface-variant leading-relaxed">Central trading and liquidity marketplace on Base. Next-generation AMM model.</p>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-surface-container-low p-2 rounded-sm border border-outline-variant/10">
+<div class="mono text-[8px] text-outline uppercase">Market Cap</div>
+<div class="mono text-xs font-bold">$142.5M</div>
+</div>
+<div class="bg-surface-container-low p-2 rounded-sm border border-outline-variant/10">
+<div class="mono text-[8px] text-outline uppercase">TVL</div>
+<div class="mono text-xs font-bold">$480.1M</div>
+</div>
+</div>
+</div>
+<div class="p-3 bg-surface-container-lowest border-t border-outline-variant/10 flex justify-between items-center">
+<span class="px-2 py-0.5 bg-secondary-container/30 text-secondary text-[9px] font-bold mono rounded-sm">DEFI</span>
+<div class="flex items-center gap-1">
+<div class="w-12 h-4 flex items-end gap-0.5">
+<div class="w-1 bg-primary h-[40%]"></div>
+<div class="w-1 bg-primary h-[60%]"></div>
+<div class="w-1 bg-primary h-[50%]"></div>
+<div class="w-1 bg-primary h-[80%]"></div>
+<div class="w-1 bg-primary h-[90%]"></div>
+</div>
+<span class="mono text-[10px] text-primary font-bold">+12.4%</span>
+</div>
+</div>
+</article>
+<!-- Project Card 2 -->
+<article class="bg-surface-container-lowest border border-outline-variant/40 flex flex-col group cursor-pointer hover:border-primary transition-all">
+<div class="p-4 flex justify-between items-start border-b border-outline-variant/20 bg-surface-container-highest">
+<div class="flex gap-3">
+<div class="w-10 h-10 bg-white rounded-sm border border-outline-variant flex items-center justify-center p-1">
+<img alt="Basecamp Logo" class="w-full h-full" data-alt="Grey logo for Basecamp project" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZNYsVQOWxr_u2YxRvfgLH1Okpl5bTTOumWoAOEh9wc01Gyg1wwdHZrgXkOC6c7NjlWMJIFWDtvFLCqpySR85OlhE5WKiSeYfNdjQI9hfZcyfm3q7E7RxN-gD0_17oVbCqdAOuYMD_AjifpSnRNVeyjbWTMTxnfykxqUecek1JqeU0Pjzs7YyPMaXd9wCZEwu4H3jWDhoiUqGAafcqIgJXy_uucS8GToHYRzvazWqg8SiMa784d7AzN78Ch9YR4TvHviMte5_KiA"/>
+</div>
+<div>
+<h3 class="font-bold text-sm tracking-tight text-on-surface">Basecamp</h3>
+<div class="mono text-[10px] text-outline font-bold">CAMP</div>
+</div>
+</div>
+<span class="px-2 py-0.5 bg-surface-container text-on-surface-variant mono text-[9px] font-bold rounded-full">NEW</span>
+</div>
+<div class="p-4 space-y-4 flex-1">
+<p class="text-xs text-on-surface-variant leading-relaxed">Integrated onboarding suite for new developers entering the Base ecosystem.</p>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-surface-container-low p-2 rounded-sm border border-outline-variant/10">
+<div class="mono text-[8px] text-outline uppercase">Builders</div>
+<div class="mono text-xs font-bold">2,400+</div>
+</div>
+<div class="bg-surface-container-low p-2 rounded-sm border border-outline-variant/10">
+<div class="mono text-[8px] text-outline uppercase">Stage</div>
+<div class="mono text-xs font-bold">PUBLIC BETA</div>
+</div>
+</div>
+</div>
+<div class="p-3 bg-surface-container-lowest border-t border-outline-variant/10 flex justify-between items-center">
+<span class="px-2 py-0.5 bg-secondary-container/30 text-secondary text-[9px] font-bold mono rounded-sm">INFRA</span>
+<div class="flex items-center gap-1">
+<div class="w-12 h-4 flex items-end gap-0.5 opacity-40">
+<div class="w-1 bg-outline h-[30%]"></div>
+<div class="w-1 bg-outline h-[40%]"></div>
+<div class="w-1 bg-outline h-[35%]"></div>
+<div class="w-1 bg-outline h-[45%]"></div>
+<div class="w-1 bg-outline h-[50%]"></div>
+</div>
+<span class="mono text-[10px] text-outline font-bold">+2.1%</span>
+</div>
+</div>
+</article>
+<!-- Project Card 3 -->
+<article class="bg-surface-container-lowest border border-outline-variant/40 flex flex-col group cursor-pointer hover:border-primary transition-all">
+<div class="p-4 flex justify-between items-start border-b border-outline-variant/20 bg-surface-container-highest">
+<div class="flex gap-3">
+<div class="w-10 h-10 bg-white rounded-sm border border-outline-variant flex items-center justify-center p-1">
+<img alt="Friend.tech Logo" class="w-full h-full" data-alt="Blue logo for Friend.tech social platform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_UfjDNw5821duEWZx7XKzUwTXscXYkcP46EoKxUn_hMXVf1Lh2_Mi9WyTNCa9hBLQaiy6cTeriDzL6MEvGcoYx8IJZ7ZytxzdxpV0uaeDGwKLEQpUSEgk40AaZb2CD6L96vdB5Vvko2t_TTe_l9wIsflHysVcnwIl-cYHYVchWXW1vtnhQGSpRIIi_css3wfEy-pTGEeXPmH8OVCv6H-ckbU7udEUzUlU5j5JdFdjGf2s7D3e9skwZ67X5m3h0oNaz7rLBQRjxg"/>
+</div>
+<div>
+<h3 class="font-bold text-sm tracking-tight text-on-surface">Friend.tech</h3>
+<div class="mono text-[10px] text-outline font-bold">FT</div>
+</div>
+</div>
+<span class="px-2 py-0.5 bg-secondary-container text-white mono text-[9px] font-bold rounded-full">STABLE</span>
+</div>
+<div class="p-4 space-y-4 flex-1">
+<p class="text-xs text-on-surface-variant leading-relaxed">Social graph monetization layer. Marketplace for keys to private chats.</p>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-surface-container-low p-2 rounded-sm border border-outline-variant/10">
+<div class="mono text-[8px] text-outline uppercase">Daily Users</div>
+<div class="mono text-xs font-bold">18.2K</div>
+</div>
+<div class="bg-surface-container-low p-2 rounded-sm border border-outline-variant/10">
+<div class="mono text-[8px] text-outline uppercase">TVL</div>
+<div class="mono text-xs font-bold">$31.4M</div>
+</div>
+</div>
+</div>
+<div class="p-3 bg-surface-container-lowest border-t border-outline-variant/10 flex justify-between items-center">
+<span class="px-2 py-0.5 bg-secondary-container/30 text-secondary text-[9px] font-bold mono rounded-sm">SOCIAL</span>
+<div class="flex items-center gap-1">
+<div class="w-12 h-4 flex items-end gap-0.5">
+<div class="w-1 bg-error h-[80%]"></div>
+<div class="w-1 bg-error h-[60%]"></div>
+<div class="w-1 bg-error h-[70%]"></div>
+<div class="w-1 bg-error h-[40%]"></div>
+<div class="w-1 bg-error h-[30%]"></div>
+</div>
+<span class="mono text-[10px] text-error font-bold">-4.8%</span>
+</div>
+</div>
+</article>
+</section>
+<!-- Leaderboard Mode Preview -->
+<section class="bg-surface-container-lowest border border-outline-variant/40 rounded-sm">
+<div class="p-4 border-b border-outline-variant/20 flex justify-between items-center">
+<h2 class="font-bold text-sm mono tracking-widest uppercase">Ecosystem Leaderboard (Preview)</h2>
+<button class="text-xs font-bold text-primary mono uppercase tracking-tight flex items-center gap-1">
+                        View Full Terminal <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low mono text-[10px] font-bold uppercase tracking-widest text-outline">
+<tr>
+<th class="px-6 py-3 font-medium">Rank</th>
+<th class="px-6 py-3 font-medium">Project</th>
+<th class="px-6 py-3 font-medium text-right">Mindshare</th>
+<th class="px-6 py-3 font-medium text-right">24H Volume</th>
+<th class="px-6 py-3 font-medium text-right">Premier Base Score</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20 mono text-xs">
+<tr class="hover:bg-surface-container transition-all">
+<td class="px-6 py-4 font-bold text-primary">01</td>
+<td class="px-6 py-4 font-bold">Aerodrome</td>
+<td class="px-6 py-4 text-right">42.4%</td>
+<td class="px-6 py-4 text-right">$82.1M</td>
+<td class="px-6 py-4 text-right">
+<span class="px-2 py-1 bg-primary-fixed text-primary rounded-sm font-black">98.4</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-all">
+<td class="px-6 py-4 font-bold">02</td>
+<td class="px-6 py-4 font-bold">Base Name Service</td>
+<td class="px-6 py-4 text-right">21.8%</td>
+<td class="px-6 py-4 text-right">$4.2M</td>
+<td class="px-6 py-4 text-right">
+<span class="px-2 py-1 bg-surface-container-highest text-on-surface rounded-sm font-black">89.1</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-all">
+<td class="px-6 py-4 font-bold">03</td>
+<td class="px-6 py-4 font-bold">DackieSwap</td>
+<td class="px-6 py-4 text-right">18.2%</td>
+<td class="px-6 py-4 text-right">$1.8M</td>
+<td class="px-6 py-4 text-right">
+<span class="px-2 py-1 bg-surface-container-highest text-on-surface rounded-sm font-black">84.5</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+<!-- Project Detail Drawer (Open) -->
+<div class="fixed top-14 right-0 w-full md:w-96 lg:w-[450px] h-[calc(100vh-3.5rem)] bg-surface-container-lowest border-l border-outline-variant shadow-2xl z-50 flex flex-col overflow-hidden">
+<div class="p-6 border-b border-outline-variant/30 flex justify-between items-center bg-surface-bright">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-white rounded-sm border border-outline-variant flex items-center justify-center p-1">
+<img alt="Aerodrome Logo" class="w-full h-full" data-alt="Blue logo for Aerodrome crypto protocol" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLKQJPyrns8z7w43OIEnmFZXwRHlyGQtlKzDlw_GbRZ_Nfa1ex0jFfkq_TUg27FKPILZ31NIlVdpUuszSjLcBVDgZ7QRlUQGanHEdbFOtZ7kioG_GXn3EtMytQlw4lDu-dyXE_KcKVtosnTJERdz6hKibSCk0hJXyYaMzBl6U-Vars-MQ57r9OgfSP9sQFOyiKlUN5R8pVu2ce84jslcoEJcSkRemQOqIVtJFTmZ3o15JXZO1m0e2hfyWFX2a-znHst_JWmWVocA"/>
+</div>
+<div>
+<h2 class="text-lg font-black tracking-tight text-on-surface">Aerodrome</h2>
+<div class="mono text-xs text-primary font-bold tracking-widest uppercase">AERO // LIQUIDITY HUB</div>
+</div>
+</div>
+<button class="material-symbols-outlined text-outline hover:text-on-surface transition-all">close</button>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-8">
+<!-- Editorial Thesis -->
+<section class="space-y-4">
+<h3 class="mono text-[10px] font-bold text-outline tracking-[0.2em] uppercase">Premier Base Editorial Thesis</h3>
+<div class="bg-primary/5 border-l-4 border-primary p-4 rounded-sm">
+<p class="text-sm italic leading-relaxed text-on-surface-variant font-medium">
+                        "Aerodrome isn't just a fork; it's the economic engine of Base. By aligning incentives between LPs, voters, and traders, it creates a self-sustaining liquidity flywheel that other chains struggle to replicate."
+                    </p>
+<div class="mt-3 flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-on-background"></div>
+<span class="mono text-[9px] font-bold uppercase">Base Core Research Team</span>
+</div>
+</div>
+</section>
+<!-- Metrics Dashboard -->
+<section class="space-y-4">
+<h3 class="mono text-[10px] font-bold text-outline tracking-[0.2em] uppercase">Terminal Metrics</h3>
+<div class="grid grid-cols-2 gap-px bg-outline-variant/30 border border-outline-variant/30">
+<div class="bg-surface-container-lowest p-4">
+<div class="mono text-[9px] text-outline uppercase">Fully Diluted Val</div>
+<div class="mono text-lg font-bold tracking-tight">$824,192,042</div>
+</div>
+<div class="bg-surface-container-lowest p-4">
+<div class="mono text-[9px] text-outline uppercase">24H Fees</div>
+<div class="mono text-lg font-bold tracking-tight text-primary">$312,402</div>
+</div>
+<div class="bg-surface-container-lowest p-4">
+<div class="mono text-[9px] text-outline uppercase">Emissions / Epoch</div>
+<div class="mono text-lg font-bold tracking-tight">12.4M AERO</div>
+</div>
+<div class="bg-surface-container-lowest p-4">
+<div class="mono text-[9px] text-outline uppercase">Avg Slippage</div>
+<div class="mono text-lg font-bold tracking-tight text-tertiary">0.04%</div>
+</div>
+</div>
+</section>
+<!-- Related Narratives -->
+<section class="space-y-4">
+<h3 class="mono text-[10px] font-bold text-outline tracking-[0.2em] uppercase">Ecosystem Narratives</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container border border-outline-variant/40 rounded-full mono text-[10px] uppercase font-bold text-on-surface-variant">Real Yield</span>
+<span class="px-3 py-1 bg-surface-container border border-outline-variant/40 rounded-full mono text-[10px] uppercase font-bold text-on-surface-variant">ve(3,3) Model</span>
+<span class="px-3 py-1 bg-surface-container border border-outline-variant/40 rounded-full mono text-[10px] uppercase font-bold text-on-surface-variant">Base Summer</span>
+<span class="px-3 py-1 bg-primary text-on-primary rounded-full mono text-[10px] uppercase font-bold">Core Pillar</span>
+</div>
+</section>
+<!-- Team / Backers -->
+<section class="space-y-4">
+<h3 class="mono text-[10px] font-bold text-outline tracking-[0.2em] uppercase">Identity &amp; Governance</h3>
+<div class="flex items-center gap-4 p-4 border border-outline-variant/40 bg-surface-container-low rounded-sm">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-slate-300" data-alt="Project team avatar 1"></div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-slate-400" data-alt="Project team avatar 2"></div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-slate-500" data-alt="Project team avatar 3"></div>
+</div>
+<div class="flex-1">
+<div class="text-xs font-bold">Community Led DAO</div>
+<div class="mono text-[9px] text-outline uppercase">14,204 Active Voters</div>
+</div>
+</div>
+</section>
+</div>
+<div class="p-6 bg-surface-container-highest border-t border-outline-variant flex gap-3">
+<button class="flex-1 bg-primary text-on-primary py-3 rounded-sm font-bold mono text-xs uppercase tracking-widest hover:opacity-90 transition-all">
+                OPEN DAPP
+            </button>
+<button class="px-4 border border-outline text-outline rounded-sm hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 lg:hidden bg-white/90 dark:bg-slate-950/90 border-t border-slate-200/40 dark:border-slate-800/40 backdrop-blur-md shadow-lg dark:shadow-none">
+<a class="flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 p-2 font-mono text-[9px] font-bold uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+            EXPLORE
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 p-2 font-mono text-[9px] font-bold uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+            TRENDS
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 p-2 font-mono text-[9px] font-bold uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+            SAVED
+        </a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 p-2 font-mono text-[9px] font-bold uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+            WALLET
+        </a>
+</nav>
+<!-- Footer -->
+<footer class="lg:ml-64 w-full px-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-slate-950 py-8 border-t border-slate-200/40 dark:border-slate-800/40">
+<div class="font-bold text-slate-900 dark:text-slate-50 mono text-[10px] uppercase tracking-tighter">
+            Â© 2024 BASE EVERYTHING. ECOSYSTEM INTELLIGENCE TERMINAL.
+        </div>
+<div class="flex gap-6">
+<a class="font-mono text-[10px] uppercase tracking-tighter text-slate-400 hover:text-blue-500 hover:opacity-80 transition-opacity" href="#">Categories</a>
+<a class="font-mono text-[10px] uppercase tracking-tighter text-slate-400 hover:text-blue-500 hover:opacity-80 transition-opacity" href="#">Socials</a>
+<a class="font-mono text-[10px] uppercase tracking-tighter text-slate-400 hover:text-blue-500 hover:opacity-80 transition-opacity" href="#">Submit</a>
+<a class="font-mono text-[10px] uppercase tracking-tighter text-slate-400 hover:text-blue-500 hover:opacity-80 transition-opacity" href="#">Documentation</a>
+<a class="font-mono text-[10px] uppercase tracking-tighter text-slate-400 hover:text-blue-500 hover:opacity-80 transition-opacity" href="#">Privacy</a>
+</div>
+</footer>
+</body></html>
