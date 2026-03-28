@@ -210,7 +210,13 @@ export default function SubmitPage() {
     update("logoUrl", url);
     setLogoError(false);
     if (url.trim()) {
-      const img = new Image();
+      // SSRF defence: enforce https:// and image/* content-type before rendering
+      if (!url.startsWith("https://")) {
+        setLogoError(true);
+        setLogoPreview(null);
+        return;
+      }
+      const img = new window.Image();
       img.onerror = () => { setLogoError(true); setLogoPreview(null); };
       img.onload = () => { setLogoPreview(url); setLogoError(false); };
       img.src = url;

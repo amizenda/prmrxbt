@@ -56,9 +56,10 @@ interface BasescanTxListResponse {
 
 /** Fetch with timeout + basic error handling */
 async function safeFetch<T>(url: string, signal?: AbortSignal): Promise<T | null> {
+  let timeoutId: ReturnType<typeof setTimeout>;
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15_000);
+    timeoutId = setTimeout(() => controller.abort(), 15_000);
     const mergedSignal = signal ?? controller.signal;
 
     const res = await fetch(url, {
@@ -75,7 +76,11 @@ async function safeFetch<T>(url: string, signal?: AbortSignal): Promise<T | null
 
     if (!res.ok) return null;
     return (await res.json()) as T;
-  } catch {
+  } catch (err) {
+    // Log only safe, non-sensitive metadata — never the full error or stack in production
+    const name = err instanceof Error ? err.name : "UnknownError";
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`[safeFetch] fetch failed: ${name} — ${message}`);
     return null;
   }
 }
@@ -115,7 +120,9 @@ function computeGasETH(gasUsed: string, gasPrice: string): string {
     const wei = gas * price;
     const eth = Number(wei) / Number(ETHER_VALUE_DIVISOR);
     return eth.toFixed(8);
-  } catch {
+  } catch (err) {
+    const name = err instanceof Error ? err.name : "UnknownError";
+    console.warn(`[computeGasETH] parse error: ${name}`);
     return "0";
   }
 }
