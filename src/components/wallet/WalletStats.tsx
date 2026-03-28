@@ -96,7 +96,7 @@ export function WalletStats({ stats, isLoading }: WalletStatsProps) {
       <StatCard
         label="Total Txns"
         value={formatNumber(stats.txCount)}
-        subValue={`${stats.transactions.length} shown`}
+        subValue={`${stats.transactions.length} on this page`}
         icon="receipt_long"
       />
       <StatCard

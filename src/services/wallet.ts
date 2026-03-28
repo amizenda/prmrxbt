@@ -67,7 +67,8 @@ async function safeFetch<T>(url: string, signal?: AbortSignal): Promise<T | null
         "User-Agent": "base-everything-wallet-tracker/1.0",
       },
       signal: mergedSignal,
-      next: { revalidate: 60 }, // cache for 60s (ISR-style)
+      // No ISR / cache: client-side pagination must always fetch fresh data.
+      // API route and Basescan handle their own caching via Cache-Control headers.
     });
 
     clearTimeout(timeout);
@@ -156,12 +157,14 @@ export async function fetchWalletData(
   const { address, page = 1, limit = 20 } = params;
   const normalized = normalizeAddress(address);
 
-  const offset = (Math.max(1, page) - 1) * Math.min(limit, 100);
+  const pageNum = Math.max(1, page);
+  const pageLimit = Math.min(limit, 100);
+  const offset = (pageNum - 1) * pageLimit;
 
   // Fetch tx list + ETH price in parallel
   const [txData, ethPrice] = await Promise.all([
     safeFetch<BasescanTxListResponse>(
-      `${BASESCAN_BASE}?module=account&action=txlist&address=${normalized}&startblock=0&endblock=99999999&page=1&offset=${MAX_TRANSACTIONS}&sort=desc${BASESCAN_API_KEY ? `&apikey=${BASESCAN_API_KEY}` : ""}`,
+      `${BASESCAN_BASE}?module=account&action=txlist&address=${normalized}&startblock=0&endblock=99999999&page=${pageNum}&offset=${pageLimit}&sort=desc${BASESCAN_API_KEY ? `&apikey=${BASESCAN_API_KEY}` : ""}`,
       signal
     ),
     getEthPriceUSD(),
@@ -177,7 +180,7 @@ export async function fetchWalletData(
   } else {
     // Try fetching internal tx list as fallback
     const internalData = await safeFetch<BasescanTxListResponse>(
-      `${BASESCAN_BASE}?module=account&action=txlistinternal&address=${normalized}&startblock=0&endblock=99999999&page=1&offset=${MAX_TRANSACTIONS}&sort=desc${BASESCAN_API_KEY ? `&apikey=${BASESCAN_API_KEY}` : ""}`,
+      `${BASESCAN_BASE}?module=account&action=txlistinternal&address=${normalized}&startblock=0&endblock=99999999&page=${pageNum}&offset=${pageLimit}&sort=desc${BASESCAN_API_KEY ? `&apikey=${BASESCAN_API_KEY}` : ""}`,
       signal
     );
     if (internalData?.status === "1" && Array.isArray(internalData.result)) {
@@ -188,8 +191,8 @@ export async function fetchWalletData(
   // Filter out errored transactions
   const validTxs = rawTxs.filter((tx) => tx.isError === "0");
 
-  // Slice for pagination
-  const pageTxs = validTxs.slice(offset, offset + Math.min(limit, 100));
+  // Page Txs = the slice returned from the API (already paginated, no extra slicing needed)
+  const pageTxs = validTxs;
 
   // Build normalized transaction list
   const transactions: WalletTransaction[] = pageTxs.map((tx) => {
@@ -208,6 +211,7 @@ export async function fetchWalletData(
   });
 
   // Compute gas spent (ETH)
+  // Note: computed over this page only — accurate totals require fetching all pages.
   const totalGasETH = validTxs.reduce((sum, tx) => {
     return sum + parseFloat(computeGasETH(tx.gasUsed, tx.gasPrice));
   }, 0);
@@ -215,6 +219,7 @@ export async function fetchWalletData(
   const gasSpentETH = totalGasETH.toFixed(8);
 
   // Compute net flow USD
+  // Note: computed over this page only — accurate totals require fetching all pages.
   // Sum of ETH received (as recipient) minus ETH sent (as sender), in USD
   let netFlowUSD = 0;
   for (const tx of validTxs) {

@@ -8,7 +8,7 @@
  * Integrates WT-BE-001 + WT-FE-001/002/003 + WT-BE-002
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { WalletInput } from "@/components/wallet/WalletInput";
 import { WalletStats } from "@/components/wallet/WalletStats";
 import { WalletActivityFeed } from "@/components/wallet/WalletActivityFeed";
@@ -40,8 +40,8 @@ async function fetchWalletPage(
 ): Promise<WalletStatsType> {
   const params = new URLSearchParams({ page: String(page), limit: "20" });
   const res = await fetch(`/api/wallet/${address}?${params}`, {
-    // Revalidate often so stats stay fresh
-    next: { revalidate: 60 },
+    // No ISR cache: client-side pagination must always be fresh.
+    // Server/API layer handles its own caching via Cache-Control.
   });
 
   if (!res.ok) {
@@ -61,6 +61,10 @@ async function fetchWalletPage(
 
 export default function DashboardPage() {
   const [state, setState] = useState<DashboardState>(INITIAL_STATE);
+
+  // Stable ref to current page — avoids stale closure in handleLoadMore
+  const pageRef = useRef(state.page);
+  pageRef.current = state.page;
 
   // Fetch wallet data when address changes
   const loadWallet = useCallback(async (address: string, page = 1) => {
@@ -86,11 +90,15 @@ export default function DashboardPage() {
   }, []);
 
   const handleLoadMore = useCallback(() => {
-    if (!state.address || state.isLoading) return;
-    const nextPage = state.page + 1;
-    setState((s) => ({ ...s, isLoading: true }));
+    setState((s) => {
+      if (!s.address || s.isLoading) return s;
+      return { ...s, isLoading: true };
+    });
 
-    fetchWalletPage(state.address, nextPage)
+    // Capture page at click-time via ref (avoids stale closure)
+    const nextPage = pageRef.current + 1;
+
+    fetchWalletPage(state.address!, nextPage)
       .then((newStats) => {
         setState((s) => {
           if (!s.stats) return s;
@@ -100,7 +108,7 @@ export default function DashboardPage() {
               ...s.stats,
               transactions: [...s.stats.transactions, ...newStats.transactions],
             },
-            page: nextPage,
+            page: s.page + 1,
             isLoading: false,
           };
         });
@@ -112,7 +120,7 @@ export default function DashboardPage() {
           error: err instanceof Error ? err.message : "Load more failed",
         }));
       });
-  }, [state.address, state.isLoading, state.page]);
+  }, [state.address, fetchWalletPage]);
 
   const hasMore = state.stats
     ? state.stats.transactions.length < state.stats.txCount
@@ -162,7 +170,11 @@ export default function DashboardPage() {
         {/* ── Error banner ───────────────────────────────────────────────── */}
         {state.error && (
           <section>
-            <div className="border border-error/50 bg-error-container rounded-[var(--radius-sm)] px-4 py-3 flex items-start gap-3">
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="border border-error/50 bg-error-container rounded-[var(--radius-sm)] px-4 py-3 flex items-start gap-3"
+            >
               <span className="material-symbols-outlined text-error text-base leading-none mt-0.5">
                 error
               </span>
@@ -174,7 +186,7 @@ export default function DashboardPage() {
         {/* ── Section 2: Stats row ───────────────────────────────────────── */}
         {state.stats && (
           <section>
-            <WalletStats stats={state.stats} isLoading={state.isLoading} />
+            <WalletStats stats={state.stats} isLoading={false} />
           </section>
         )}
 
@@ -184,7 +196,8 @@ export default function DashboardPage() {
             <WalletActivityFeed
               stats={state.stats}
               walletAddress={state.address ?? ""}
-              isLoading={state.isLoading}
+              isLoading={state.isLoading && state.page === 1}
+              isLoadingMore={state.isLoading && state.page > 1}
               onLoadMore={hasMore ? handleLoadMore : undefined}
               hasMore={hasMore}
             />

@@ -17,6 +17,7 @@ interface WalletActivityFeedProps {
   stats: WalletStats;
   walletAddress: string;
   isLoading?: boolean;
+  isLoadingMore?: boolean;
   onLoadMore?: () => void;
   hasMore?: boolean;
 }
@@ -79,13 +80,15 @@ function TxItem({
   const isSelf = tx.from?.toLowerCase() === tx.to?.toLowerCase();
 
   return (
-    <div
+    <button
+      type="button"
       onClick={() => setExpanded((v) => !v)}
+      aria-expanded={expanded}
       className={[
-        "border border-outline-variant rounded-[var(--radius-sm)]",
+        "w-full text-left border border-outline-variant rounded-[var(--radius-sm)]",
         "bg-surface-container-low p-3 cursor-pointer",
         "hover:bg-surface-container transition-colors duration-100",
-        "select-none",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary",
       ].join(" ")}
     >
       <div className="flex items-start gap-3">
@@ -184,7 +187,7 @@ function TxItem({
           )}
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -229,6 +232,7 @@ export function WalletActivityFeed({
   stats,
   walletAddress,
   isLoading,
+  isLoadingMore = false,
   onLoadMore,
   hasMore,
 }: WalletActivityFeedProps) {
@@ -267,7 +271,7 @@ export function WalletActivityFeed({
             <button
               type="button"
               onClick={onLoadMore}
-              disabled={isLoading}
+              disabled={isLoading || isLoadingMore}
               className={[
                 "mt-1 py-2 rounded-[var(--radius-sm)]",
                 "border border-dashed border-outline-variant",
@@ -275,9 +279,19 @@ export function WalletActivityFeed({
                 "hover:border-primary hover:text-primary",
                 "transition-colors duration-150",
                 "disabled:opacity-40",
+                "flex items-center justify-center gap-2",
               ].join(" ")}
             >
-              Load more transactions
+              {isLoadingMore ? (
+                <>
+                  <span className="material-symbols-outlined text-base animate-spin" aria-hidden="true">
+                    progress_activity
+                  </span>
+                  Loading more…
+                </>
+              ) : (
+                "Load more transactions"
+              )}
             </button>
           )}
         </div>

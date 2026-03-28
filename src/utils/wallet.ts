@@ -1,3 +1,8 @@
+// Re-export wallet types from canonical @/types/wallet location.
+// This keeps existing import paths stable.
+import type { WalletTransaction, WalletStats } from "@/types/wallet";
+export type { WalletTransaction, WalletStats };
+
 // Wallet address validation utilities
 
 const ADDRESS_REGEX = /^0x[0-9a-fA-F]{40}$/;
