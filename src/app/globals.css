@@ -1,28 +1,31 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
-/* ─── Base Everything — Design System: The Intelligence Terminal ─── */
-/* Source: Google Stitch — "Remix of Mobile Experience"              */
+/* â”€â”€â”€ Base Everything â€” Design System: The Intelligence Terminal â”€â”€â”€ */
+/* Source: Google Stitch â€” "Remix of Mobile Experience"              */
 /* Follows "Structured Transparency": high-density, terminal aesthetic */
 
-/* ── Google Material Symbols (variable font) ── */
+/* â”€â”€ Google Material Symbols (variable font) â”€â”€ */
 .material-symbols-outlined {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
   vertical-align: middle;
   font-family: "Material Symbols Outlined";
 }
 
-/* ── Font families ── */
+/* â”€â”€ Font families â”€â”€ */
 .font-headline { font-family: "Inter", sans-serif; }
 .font-body     { font-family: "Inter", sans-serif; }
 .font-label    { font-family: "Space Grotesk", sans-serif; }
 
-/* ── Tailwind design tokens from Stitch ── */
+/* â”€â”€ Tailwind design tokens from Stitch â”€â”€ */
 @theme inline {
-  /* ── Colors — Material 3 Base Blue palette ── */
+  /* â”€â”€ Colors â€” Material 3 Base Blue palette â”€â”€ */
   --color-primary:             #003ec7;
   --color-primary-container:    #0052ff;
   --color-on-primary:           #ffffff;
   --color-on-primary-container: #dfe3ff;
+
+  --color-primary-fixed:       #dde1ff;
+  --color-primary-fixed-dim:   #b7c4ff;
 
   --color-secondary:            #4459a8;
   --color-secondary-container:  #95aafe;
@@ -62,19 +65,19 @@
   --color-inverse-on-surface:   #edf0ff;
   --color-inverse-primary:      #b7c4ff;
 
-  /* ── Typography ── */
+  /* â”€â”€ Typography â”€â”€ */
   --font-headline: "Inter", sans-serif;
   --font-body:     "Inter", sans-serif;
   --font-label:    "Space Grotesk", sans-serif;
 
-  /* ── Border radius — sharp terminal aesthetic ── */
+  /* â”€â”€ Border radius â€” sharp terminal aesthetic â”€â”€ */
   --radius-sm:      2px;   /* Cards, buttons */
   --radius-default: 2px;
   --radius-lg:      4px;
   --radius-xl:      8px;
   --radius-full:    9999px; /* Pills/badges only */
 
-  /* ── Spacing (8px grid) ── */
+  /* â”€â”€ Spacing (8px grid) â”€â”€ */
   --spacing-1:  4px;
   --spacing-2:  8px;
   --spacing-3:  12px;
@@ -89,7 +92,7 @@
   --spacing-24: 96px;
 }
 
-/* ─── Global Resets ─── */
+/* â”€â”€â”€ Global Resets â”€â”€â”€ */
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
@@ -98,25 +101,49 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── Selection ─── */
+/* â”€â”€â”€ Selection â”€â”€â”€ */
 ::selection {
   background-color: #b7c4ff;
   color: #001452;
 }
 
-/* ─── Scrollbar — terminal style ─── */
+/* â”€â”€â”€ Scrollbar â€” terminal style â”€â”€â”€ */
+
+.grid-bg {
+  background-image: radial-gradient(var(--color-outline-variant) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
 ::-webkit-scrollbar        { width: 6px; height: 6px; }
+
+.grid-bg {
+  background-image: radial-gradient(var(--color-outline-variant) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
 ::-webkit-scrollbar-track  { background: #f1f3ff; }
+
+.grid-bg {
+  background-image: radial-gradient(var(--color-outline-variant) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
 ::-webkit-scrollbar-thumb  { background: #c3c5d9; border-radius: 9999px; }
+
+.grid-bg {
+  background-image: radial-gradient(var(--color-outline-variant) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
 ::-webkit-scrollbar-thumb:hover { background: #737688; }
 
-/* ─── Focus states ─── */
+/* â”€â”€â”€ Focus states â”€â”€â”€ */
 :focus-visible {
   outline: 2px solid #003ec7;
   outline-offset: 2px;
 }
 
-/* ─── Dark mode overrides ─── */
+/* â”€â”€â”€ Dark mode overrides â”€â”€â”€ */
 .dark {
   --color-surface:              #293040;
   --color-surface-bright:        #293040;
@@ -139,5 +166,5 @@ html {
   --color-on-primary-container:  #dfe3ff;
 }
 
-/* ─── Utility: ghost border (40% opacity) ─── */
+/* â”€â”€â”€ Utility: ghost border (40% opacity) â”€â”€â”€ */
 .border-ghost { border: 1px solid rgba(195, 197, 217, 0.4); }
