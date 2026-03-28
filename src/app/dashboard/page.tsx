@@ -4,14 +4,19 @@
  * Wallet Dashboard Page — /dashboard
  * Figma: App Dashboard & Map — Frame 2041:13
  *
- * Layout: ecosystem overview/map → wallet input → stats row → activity feed
+ * Layout: ecosystem map (Section 0) → wallet input (Section 1) → stats (Section 2) → activity (Section 3)
  * Integrates WT-BE-001 + WT-FE-001/002/003 + WT-BE-002
+ *
+ * The ecosystem map and KPI strip are powered by GET /api/dashboard.
+ * Wallet tracking is powered by GET /api/wallet/[address].
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { WalletInput } from "@/components/wallet/WalletInput";
 import { WalletStats } from "@/components/wallet/WalletStats";
 import { WalletActivityFeed } from "@/components/wallet/WalletActivityFeed";
+import { MapWidget } from "@/components/dashboard/MapWidget";
+import type { EcosystemZone } from "@/components/dashboard/MapWidget";
 import type { WalletStats as WalletStatsType } from "@/types/wallet";
 import type { DashboardResponse, RegionSummary } from "@/types/dashboard";
 
@@ -30,7 +35,35 @@ function formatWallets(n: number): string {
   return String(n);
 }
 
-// ─── Dashboard state ───────────────────────────────────────────────────────────
+// ─── MapWidget zone transformer ────────────────────────────────────────────────
+// Converts raw /api/dashboard region data into EcosystemZone props.
+
+const ZONE_ICONS: Record<string, string> = {
+  defi: "trending_up",
+  nft: "grid_view",
+  social: "group",
+  infra: "dns",
+  gaming: "sports_esports",
+  bridge: "swap_horiz",
+  yield: "savings",
+  dao: "how_to_vote",
+};
+
+function regionToZone(r: RegionSummary): EcosystemZone {
+  return {
+    id: r.id,
+    label: r.name,
+    sublabel: r.active ? "Active" : "Building",
+    icon: ZONE_ICONS[r.id] ?? "circle",
+    color: r.color,
+    glowColor: r.color + "22",
+    stat: formatUSD(r.volume24h),
+    statLabel: "24h Vol",
+    topProtocol: undefined,
+  };
+}
+
+// ─── Dashboard state ─────────────────────────────────────────────────────────
 
 interface DashboardState {
   address: string | null;
@@ -61,12 +94,8 @@ async function fetchWalletPage(
   });
 
   if (!res.ok) {
-    if (res.status === 400) {
-      throw new Error("Invalid wallet address");
-    }
-    if (res.status === 502) {
-      throw new Error("Upstream API unavailable. Please try again.");
-    }
+    if (res.status === 400) throw new Error("Invalid wallet address");
+    if (res.status === 502) throw new Error("Upstream API unavailable. Please try again.");
     throw new Error(`Request failed (${res.status})`);
   }
 
@@ -74,103 +103,12 @@ async function fetchWalletPage(
 }
 
 async function fetchDashboard(): Promise<DashboardResponse> {
-  const res = await fetch("/api/dashboard", {
-    next: { revalidate: 120 },
-  });
-
+  const res = await fetch("/api/dashboard", { next: { revalidate: 120 } });
   if (!res.ok) {
-    if (res.status === 429) {
-      throw new Error("Dashboard rate limited. Please refresh in a moment.");
-    }
+    if (res.status === 429) throw new Error("Dashboard rate limited. Please refresh.");
     throw new Error(`Dashboard load failed (${res.status})`);
   }
-
   return res.json() as Promise<DashboardResponse>;
-}
-
-// ─── Region badge colour ──────────────────────────────────────────────────────
-
-function regionColor(color?: string): string {
-  return color ?? "#6b7280";
-}
-
-// ─── Region card ──────────────────────────────────────────────────────────────
-
-function RegionCard({ region }: { region: RegionSummary }) {
-  const isActive = region.active;
-
-  return (
-    <div
-      className="flex flex-col gap-2 p-4 rounded-[var(--radius-md)] border transition-all"
-      style={{
-        borderColor: isActive ? regionColor(region.color) + "66" : "var(--border-outline-variant)",
-        background: isActive ? regionColor(region.color) + "11" : "transparent",
-        opacity: isActive ? 1 : 0.55,
-      }}
-    >
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <span className="text-xl leading-none" role="img" aria-label={region.name}>
-          {region.icon}
-        </span>
-        <span className="font-label font-semibold text-sm text-on-surface truncate">
-          {region.name}
-        </span>
-        {isActive ? (
-          <span className="ml-auto flex h-2 w-2 rounded-full" aria-label="Active">
-            <span
-              className="animate-ping absolute inline-flex h-2 w-2 rounded-full opacity-75"
-              style={{ backgroundColor: regionColor(region.color) }}
-            />
-            <span
-              className="relative inline-flex rounded-full h-2 w-2"
-              style={{ backgroundColor: regionColor(region.color) }}
-            />
-          </span>
-        ) : (
-          <span className="ml-auto text-[10px] font-label text-outline uppercase tracking-wider">
-            Quiet
-          </span>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-baseline justify-between">
-          <span className="text-xs font-label text-outline">24h Volume</span>
-          <span className="text-sm font-label font-semibold text-on-surface">
-            {formatUSD(region.volume24h)}
-          </span>
-        </div>
-        <div className="flex items-baseline justify-between">
-          <span className="text-xs font-label text-outline">Projects</span>
-          <span className="text-sm font-label font-semibold text-on-surface">
-            {region.projectCount}
-          </span>
-        </div>
-        <div className="flex items-baseline justify-between">
-          <span className="text-xs font-label text-outline">Wallets</span>
-          <span className="text-sm font-label font-semibold text-on-surface">
-            {formatWallets(region.activeWallets)}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Trending badge ─────────────────────────────────────────────────────────────
-
-function trendingTypeLabel(type: DashboardResponse["trendingNow"][number]["type"]): string {
-  const labels: Record<string, string> = {
-    surge: "🔥 Surge",
-    new: "✨ New",
-    viral: "🦠 Viral",
-    airdrop: "🎁 Airdrop",
-    listing: "📋 Listing",
-    partnership: "🤝 Partnership",
-  };
-  return labels[type] ?? type;
 }
 
 // ─── Page component ───────────────────────────────────────────────────────────
@@ -180,15 +118,15 @@ export default function DashboardPage() {
   const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [activeZone, setActiveZone] = useState<string | null>(null);
 
   // Stable ref to current page — avoids stale closure in handleLoadMore
   const pageRef = useRef(state.page);
   pageRef.current = state.page;
 
-  // ── Fetch ecosystem dashboard overview ─────────────────────────────────────
+  // ── Fetch ecosystem dashboard on mount ─────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       setDashboardLoading(true);
       setDashboardError(null);
@@ -197,31 +135,24 @@ export default function DashboardPage() {
         if (!cancelled) setDashboard(data);
       } catch (err) {
         if (!cancelled) {
-          setDashboardError(err instanceof Error ? err.message : "Failed to load dashboard");
+          setDashboardError(
+            err instanceof Error ? err.message : "Failed to load ecosystem dashboard"
+          );
         }
       } finally {
         if (!cancelled) setDashboardLoading(false);
       }
     }
-
     load();
     return () => { cancelled = true; };
   }, []);
 
-  // Fetch wallet data when address changes
+  // ── Wallet loader ──────────────────────────────────────────────────────────
   const loadWallet = useCallback(async (address: string, page = 1) => {
     setState((s) => ({ ...s, isLoading: true, error: null }));
-
     try {
       const stats = await fetchWalletPage(address, page);
-      setState((s) => ({
-        ...s,
-        stats,
-        address,
-        page,
-        isLoading: false,
-        error: null,
-      }));
+      setState((s) => ({ ...s, stats, address, page, isLoading: false, error: null }));
     } catch (err) {
       setState((s) => ({
         ...s,
@@ -231,13 +162,13 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // ── Load more ──────────────────────────────────────────────────────────────
   const handleLoadMore = useCallback(() => {
     setState((s) => {
       if (!s.address || s.isLoading) return s;
       return { ...s, isLoading: true };
     });
 
-    // Capture page at click-time via ref (avoids stale closure)
     const nextPage = pageRef.current + 1;
 
     fetchWalletPage(state.address!, nextPage)
@@ -268,8 +199,14 @@ export default function DashboardPage() {
     ? state.stats.transactions.length < state.stats.txCount
     : false;
 
+  // ── Derived: map zones from dashboard regions ───────────────────────────────
+  const mapZones: EcosystemZone[] =
+    dashboard?.regions.map(regionToZone) ??
+    [];
+
   return (
     <main className="min-h-screen bg-surface pb-20 lg:pb-0">
+
       {/* ── Top navbar ──────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-3">
@@ -279,132 +216,66 @@ export default function DashboardPage() {
           <span className="font-headline font-black text-base text-on-surface">
             Wallet Tracker
           </span>
-          <span className="ml-auto text-xs font-label text-outline">
-            Base
-          </span>
+          <span className="ml-auto text-xs font-label text-outline">Base</span>
         </div>
       </header>
 
       {/* ── Page content ─────────────────────────────────────────────────── */}
       <div className="max-w-4xl mx-auto px-4 py-6 flex flex-col gap-6">
 
-        {/* ── Section 0: Ecosystem Dashboard Overview ───────────────────── */}
+        {/* ── Section 0: Ecosystem Map & Overview ───────────────────────── */}
         <section>
-          <div className="rounded-[var(--radius-lg)] overflow-hidden">
-            {/* Overview hero bar */}
-            <div className="border border-outline-variant rounded-[var(--radius-lg)] bg-surface-container">
-              <div className="flex items-center gap-2 p-4 border-b border-outline-variant/50">
-                <span className="material-symbols-outlined text-primary text-lg leading-none">
-                  dashboard
-                </span>
-                <h2 className="text-sm font-label font-semibold text-on-surface uppercase tracking-widest"
-                    style={{ letterSpacing: "0.1em" }}>
-                  Ecosystem Overview
-                </h2>
-                {dashboardLoading && (
-                  <span className="ml-2 text-xs font-label text-outline animate-pulse">
-                    Loading…
-                  </span>
-                )}
-                {dashboard && (
-                  <span className="ml-auto text-xs font-label text-outline">
-                    {formatUSD(dashboard.overview.totalVolume24h)} 24h
-                  </span>
-                )}
-              </div>
-
-              {/* Stats strip */}
-              {dashboardLoading && (
-                <div className="grid grid-cols-3 divide-x divide-outline-variant/50">
-                  {[0, 1, 2].map((i) => (
-                    <div key={i} className="flex flex-col gap-1 p-4 items-center">
-                      <div className="h-4 w-16 bg-outline-variant/30 rounded animate-pulse" />
-                      <div className="h-3 w-12 bg-outline-variant/20 rounded animate-pulse" />
-                    </div>
-                  ))}
+          {/* KPI banner (above the hex map) */}
+          {dashboardLoading && (
+            <div className="grid grid-cols-3 divide-x divide-outline-variant border border-outline-variant rounded-t-[var(--radius-lg)] bg-surface-container">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="flex flex-col gap-1 p-4 items-center">
+                  <div className="h-5 w-20 bg-outline-variant/30 rounded animate-pulse" />
+                  <div className="h-3 w-14 bg-outline-variant/20 rounded animate-pulse" />
                 </div>
-              )}
-
-              {dashboardError && (
-                <div className="px-4 py-3 text-xs font-label text-error">
-                  {dashboardError}
-                </div>
-              )}
-
-              {dashboard && (
-                <>
-                  {/* KPI row */}
-                  <div className="grid grid-cols-3 divide-x divide-outline-variant/50">
-                    <div className="flex flex-col gap-1 p-4 items-center text-center">
-                      <span className="text-lg font-headline font-black text-on-surface">
-                        {dashboard.overview.totalProjects}
-                      </span>
-                      <span className="text-xs font-label text-outline uppercase tracking-wider">
-                        Projects
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-1 p-4 items-center text-center">
-                      <span className="text-lg font-headline font-black text-on-surface">
-                        {formatUSD(dashboard.overview.totalVolume24h)}
-                      </span>
-                      <span className="text-xs font-label text-outline uppercase tracking-wider">
-                        24h Volume
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-1 p-4 items-center text-center">
-                      <span className="text-lg font-headline font-black text-on-surface">
-                        {formatWallets(dashboard.overview.activeWallets)}
-                      </span>
-                      <span className="text-xs font-label text-outline uppercase tracking-wider">
-                        Active Wallets
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Trending strip */}
-                  {dashboard.trendingNow.length > 0 && (
-                    <div className="border-t border-outline-variant/50 px-4 py-3 flex flex-col gap-2">
-                      <span className="text-[10px] font-label text-outline uppercase tracking-widest">
-                        🔥 Trending Now
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {dashboard.trendingNow.slice(0, 4).map((t) => (
-                          <div
-                            key={t.project}
-                            className="flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1"
-                          >
-                            <span className="text-[10px] font-label font-semibold text-on-surface">
-                              {t.project}
-                            </span>
-                            <span
-                              className="text-[10px] font-label font-semibold"
-                              style={{ color: t.change >= 0 ? "var(--color-success)" : "var(--color-error)" }}
-                            >
-                              {t.change >= 0 ? "+" : ""}{t.change.toFixed(1)}%
-                            </span>
-                            <span className="text-[10px] font-label text-outline">
-                              {trendingTypeLabel(t.type)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+              ))}
             </div>
-
-            {/* Region grid */}
-            {dashboard && (
-              <div className="mt-3">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {dashboard.regions.map((region) => (
-                    <RegionCard key={region.id} region={region} />
-                  ))}
-                </div>
+          )}
+          {dashboardError && (
+            <div className="border border-error/40 bg-error-container rounded-[var(--radius-md)] px-4 py-2 text-xs font-label text-on-error-container">
+              {dashboardError}
+            </div>
+          )}
+          {dashboard && (
+            <div className="grid grid-cols-3 divide-x divide-outline-variant border border-outline-variant rounded-t-[var(--radius-lg)] bg-surface-container">
+              <div className="flex flex-col gap-1 p-4 items-center text-center">
+                <span className="text-xl font-headline font-black text-on-surface">
+                  {dashboard.overview.totalProjects}
+                </span>
+                <span className="text-[10px] font-label text-outline uppercase tracking-widest">
+                  Projects
+                </span>
               </div>
-            )}
-          </div>
+              <div className="flex flex-col gap-1 p-4 items-center text-center">
+                <span className="text-xl font-headline font-black text-on-surface">
+                  {formatUSD(dashboard.overview.totalVolume24h)}
+                </span>
+                <span className="text-[10px] font-label text-outline uppercase tracking-widest">
+                  24h Volume
+                </span>
+              </div>
+              <div className="flex flex-col gap-1 p-4 items-center text-center">
+                <span className="text-xl font-headline font-black text-on-surface">
+                  {formatWallets(dashboard.overview.activeWallets)}
+                </span>
+                <span className="text-[10px] font-label text-outline uppercase tracking-widest">
+                  Active Wallets
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Hex map — populated from /api/dashboard regions */}
+          <MapWidget
+            zones={mapZones.length > 0 ? mapZones : undefined}
+            activeZone={activeZone}
+            onZoneSelect={(id) => setActiveZone(id ?? null)}
+          />
         </section>
 
         {/* ── Section 1: Wallet input ────────────────────────────────────── */}
@@ -414,12 +285,13 @@ export default function DashboardPage() {
               <span className="material-symbols-outlined text-primary text-lg leading-none">
                 search
               </span>
-              <h2 className="text-sm font-label font-semibold text-on-surface uppercase tracking-widest"
-                  style={{ letterSpacing: "0.1em" }}>
+              <h2
+                className="text-sm font-label font-semibold text-on-surface uppercase tracking-widest"
+                style={{ letterSpacing: "0.1em" }}
+              >
                 Track Wallet
               </h2>
             </div>
-
             <WalletInput
               onSubmit={loadWallet}
               initialValue={state.address ?? ""}
@@ -465,7 +337,7 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* ── Empty state: no wallet selected ─────────────────────────────── */}
+        {/* ── Empty state ─────────────────────────────────────────────────── */}
         {!state.stats && !state.isLoading && !state.error && (
           <section>
             <div className="border border-dashed border-outline-variant rounded-[var(--radius-lg)] p-12 flex flex-col items-center gap-4 text-center">
@@ -488,7 +360,7 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* ── Footer note ────────────────────────────────────────────────── */}
+        {/* ── Footer ──────────────────────────────────────────────────────── */}
         <footer className="pt-4 border-t border-outline-variant/30 flex items-center justify-between text-xs text-outline font-label">
           <span>Data sourced from Basescan · Base RPC</span>
           <span>Refreshes every 60s</span>
