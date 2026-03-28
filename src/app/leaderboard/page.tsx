@@ -82,7 +82,7 @@ function Badge({ badge }: { badge: LeaderboardEntry["badge"] }) {
     </span>
   );
   if (badge === "rising") return (
-    <span className="text-[9px] font-label font-bold px-1.5 py-0.5 rounded-[2px] bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase" style={{ letterSpacing: "0.06e" }}>
+    <span className="text-[9px] font-label font-bold px-1.5 py-0.5 rounded-[2px] bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase" style={{ letterSpacing: "0.06em" }}>
       RISING
     </span>
   );
@@ -140,7 +140,7 @@ export default function LeaderboardPage() {
     <main className="min-h-screen bg-surface pb-20 lg:pb-0">
 
       {/* ── Navbar ──────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
           <span className="material-symbols-outlined text-primary text-xl leading-none">leaderboard</span>
           <span className="font-headline font-black text-base text-on-surface">Leaderboard</span>

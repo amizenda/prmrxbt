@@ -206,7 +206,7 @@ export default function IntelligencePage() {
     <main className="min-h-screen bg-surface pb-20 lg:pb-0">
 
       {/* ── Navbar ──────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
           <span className="material-symbols-outlined text-primary text-xl leading-none">
             terminal

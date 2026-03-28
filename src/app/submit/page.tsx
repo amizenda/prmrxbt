@@ -223,7 +223,7 @@ export default function SubmitPage() {
   if (submitState === "success") {
     return (
       <main className="min-h-screen bg-surface pb-20 lg:pb-0">
-        <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface/80 backdrop-blur-sm">
+        <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface">
           <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
             <span className="material-symbols-outlined text-primary text-xl leading-none">send</span>
             <span className="font-headline font-black text-base text-on-surface">Submit Project</span>
@@ -268,7 +268,7 @@ export default function SubmitPage() {
     <main className="min-h-screen bg-surface pb-20 lg:pb-0">
 
       {/* Navbar */}
-      <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
           <span className="material-symbols-outlined text-primary text-xl leading-none">send</span>
           <span className="font-headline font-black text-base text-on-surface">Submit Project</span>
