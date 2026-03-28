@@ -4,7 +4,8 @@ import { SECURITY_HEADERS } from '@/lib/security-headers';
 import { sanitise } from '@/lib/sanitise';
 import type { SubmitPayload, SubmitResponse } from '@/types/stitch';
 
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN ?? 'http://localhost:3000';
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
+if (!ALLOWED_ORIGIN) throw new Error("ALLOWED_ORIGIN environment variable is required");
 
 function json(data: unknown, init?: ResponseInit) {
   return NextResponse.json(data, {
@@ -35,6 +36,8 @@ const VALID_CATEGORIES = [
 
 const ETH_ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
 const URL_RE = /^https?:\/\/.+/;
+const HANDLE_RE = /^@[\w]+$/;
+const PRIVATE_IP_RE = /^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|localhost|169\.254\.169\.254)/;
 
 function validatePayload(body: Partial<SubmitPayload>): string | null {
   if (!body.name?.trim())                          return 'name is required';
@@ -46,6 +49,30 @@ function validatePayload(body: Partial<SubmitPayload>): string | null {
   if (body.contractAddress && !ETH_ADDRESS_RE.test(body.contractAddress)) {
     return 'invalid Ethereum contract address';
   }
+
+  // SSRF defence: validate logoUrl if provided
+  if (body.logoUrl) {
+    try {
+      const u = new URL(body.logoUrl);
+      if (!['http:', 'https:'].includes(u.protocol)) {
+        return 'logoUrl must use http or https';
+      }
+      if (PRIVATE_IP_RE.test(u.hostname)) {
+        return 'logoUrl cannot point to internal or private addresses';
+      }
+    } catch {
+      return 'logoUrl must be a valid URL';
+    }
+  }
+
+  // Social link field validation
+  if (body.twitter && body.twitter.length > 200) return 'twitter handle too long';
+  if (body.github && !URL_RE.test(body.github)) return 'github must be a valid URL';
+  if (body.docs && !URL_RE.test(body.docs)) return 'docs must be a valid https URL';
+  if (body.telegram && !URL_RE.test(body.telegram) && !HANDLE_RE.test(body.telegram)) {
+    return 'telegram must be a @handle or a valid https URL';
+  }
+
   return null;
 }
 

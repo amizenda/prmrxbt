@@ -19,7 +19,8 @@ import { SECURITY_HEADERS } from "@/lib/security-headers";
 import { buildDashboardResponse } from "@/services/dashboard";
 import type { DashboardResponse } from "@/types/dashboard";
 
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN ?? "http://localhost:3000";
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
+if (!ALLOWED_ORIGIN) throw new Error("ALLOWED_ORIGIN environment variable is required");
 
 function json(data: DashboardResponse, init?: ResponseInit) {
   return NextResponse.json(data, {
@@ -38,7 +39,8 @@ export async function OPTIONS(req: NextRequest) {
     status: 204,
     headers: {
       ...SECURITY_HEADERS,
-      "Access-Control-Allow-Origin": origin,`n      "Vary": "Origin",
+      "Access-Control-Allow-Origin": origin,
+      "Vary": "Origin",
       "Access-Control-Allow-Methods": "GET",
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Max-Age": "86400",

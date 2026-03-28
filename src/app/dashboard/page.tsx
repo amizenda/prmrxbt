@@ -152,6 +152,12 @@ export default function DashboardPage() {
 
   // ── Wallet load ─────────────────────────────────────────────────────────────
   const loadWallet = useCallback(async (address: string, page = 1) => {
+    // Client-side validation before fetch — fail fast with a clear message
+    const ETH_RE = /^0x[0-9a-fA-F]{40}$/;
+    if (!ETH_RE.test(address)) {
+      setWalletState((s) => ({ ...s, isLoading: false, error: "Invalid Ethereum address format (must be 0x + 40 hex chars)" }));
+      return;
+    }
     setWalletState((s) => ({ ...s, isLoading: true, error: null }));
     try {
       const stats = await fetchWalletPage(address, page);
@@ -272,13 +278,13 @@ export default function DashboardPage() {
           name: selectedProject.name,
           ticker: `${selectedProject.ticker} // ${selectedProject.category} HUB`,
           thesis: `${selectedProject.name} is a key protocol within the Base ecosystem, providing ${selectedProject.category.toLowerCase()} services to thousands of daily active users.`,
-          metrics: selectedProject.stats.map(([k, v]) => [k, v]),
+          metrics: selectedProject.stats.map(([k, v]) => [k, v, false] as [string, string, boolean?]),
           narratives: ["Ecosystem Pillar", "High Conviction", selectedProject.category],
           governance: {
             label: "Community Governed",
             sublabel: "DAO Active",
           },
-          dappUrl: "#",
+          dappUrl: "https://aerodrome.finance",
         } : null}
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
