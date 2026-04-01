@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Base Everything | The Living Map of Base",
+  title: "Zenda — Backend Developer",
   description:
-    "The living map of the Base ecosystem. Track projects, narratives, metrics, and relationships in real time.",
+    "Backend Developer passionate about building scalable, clean systems. Vietnam, GMT+7.",
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "Zenda — Backend Developer",
+    description: "Ayez confiance en la suite, car vous en êtes l'auteur.",
+    type: "website",
   },
 };
 
@@ -16,12 +21,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased dark">
+    <html lang="en" className="antialiased">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
         <link
@@ -29,7 +34,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full bg-surface text-on-background selection:bg-primary-fixed selection:text-on-primary-fixed">
+      <body className="min-h-screen bg-background text-on-surface selection:bg-primary-container selection:text-on-primary-container">
         {children}
       </body>
     </html>

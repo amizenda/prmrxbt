@@ -1,4 +1,71 @@
-// tailwind.config.ts
-// Design tokens are defined in src/app/globals.css via @theme {} (Tailwind v4)
-// This file is kept for Tailwind v3 compatibility / custom plugins only.
-// Do NOT redefine tokens here that already exist in globals.css.
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        background: "#f9f9f9",
+        surface: "#f9f9f9",
+        "surface-bright": "#f9f9f9",
+        "surface-container": "#eeeeee",
+        "surface-container-high": "#e8e8e8",
+        "surface-container-highest": "#e2e2e2",
+        "surface-container-low": "#f3f3f4",
+        "surface-container-lowest": "#ffffff",
+        "surface-dim": "#dadada",
+        "surface-variant": "#e2e2e2",
+        "surface-tint": "#0061a4",
+        primary: "#0061a4",
+        "primary-fixed": "#d1e4ff",
+        "primary-fixed-dim": "#9fcaff",
+        "primary-container": "#2196F3",
+        "on-primary": "#ffffff",
+        "on-primary-fixed": "#001d36",
+        "on-primary-fixed-variant": "#00497d",
+        "on-primary-container": "#002c4f",
+        secondary: "#526069",
+        "secondary-container": "#c8dfff",
+        "on-secondary": "#ffffff",
+        "on-secondary-fixed": "#021d35",
+        "on-secondary-fixed-variant": "#324863",
+        "on-secondary-container": "#4c627e",
+        tertiary: "#506169",
+        "tertiary-container": "#83949d",
+        "on-tertiary": "#ffffff",
+        "on-tertiary-fixed": "#0d1e25",
+        "on-tertiary-fixed-variant": "#394951",
+        "on-tertiary-container": "#1d2d34",
+        "inverse-primary": "#9ecaff",
+        "inverse-surface": "#2f3131",
+        "inverse-on-surface": "#f0f1f1",
+        "on-surface": "#1a1c1c",
+        "on-surface-variant": "#404752",
+        "on-background": "#1a1c1c",
+        outline: "#707883",
+        "outline-variant": "#bfc7d4",
+        error: "#ba1a1a",
+        "error-container": "#ffdad6",
+        "on-error": "#ffffff",
+        "on-error-container": "#93000a",
+      },
+      fontFamily: {
+        headline: ["Space Grotesk", "sans-serif"],
+        body: ["Inter", "sans-serif"],
+        label: ["Inter", "sans-serif"],
+      },
+      borderRadius: {
+        DEFAULT: "0.25rem",
+        lg: "1rem",
+        xl: "1.25rem",
+        full: "9999px",
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;
